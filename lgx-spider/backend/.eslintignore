@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database files
+*.sqlite
+*.db
+
+# Package files
+package-lock.json
+yarn.lock

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+.env.*
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+test/
+tests/
+
+# Documentation
+*.md

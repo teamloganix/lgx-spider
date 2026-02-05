@@ -1,0 +1,6 @@
+.astro
+.env*
+dist
+node_modules
+.env.local
+.npm-cache/

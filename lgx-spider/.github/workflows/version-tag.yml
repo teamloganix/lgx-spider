@@ -1,0 +1,145 @@
+name: Version Tag on Merge to Master
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  tag-version:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master' && (github.event.pull_request.head.ref == 'dev' || startsWith(github.event.pull_request.head.ref, 'dev/'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Ensure we're on master branch
+        run: |
+          git checkout master
+          git pull origin master
+      
+      - name: Get current version
+        id: current_version
+        run: |
+          if [ ! -f "VERSION" ]; then
+            echo "0.0.0" > VERSION
+          fi
+          CURRENT_VERSION=$(cat VERSION | tr -d ' \n')
+          {
+            echo "current=$CURRENT_VERSION"
+          } >> "$GITHUB_OUTPUT"
+          echo "Current version: $CURRENT_VERSION"
+      
+      - name: Bump version (patch)
+        id: bump_version
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "$NEW_VERSION" > VERSION
+          {
+            echo "new=$NEW_VERSION"
+          } >> "$GITHUB_OUTPUT"
+          echo "New version: $NEW_VERSION"
+      
+      - name: Update package.json files
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new }}"
+          
+          if [ -f "backend/package.json" ]; then
+            if command -v jq &> /dev/null; then
+              jq --arg version "$NEW_VERSION" '.version = $version' backend/package.json > backend/package.json.tmp && mv backend/package.json.tmp backend/package.json
+            else
+              sed -i.bak "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" backend/package.json && rm -f backend/package.json.bak
+            fi
+          fi
+          
+          if [ -f "frontend/package.json" ]; then
+            if command -v jq &> /dev/null; then
+              jq --arg version "$NEW_VERSION" '.version = $version' frontend/package.json > frontend/package.json.tmp && mv frontend/package.json.tmp frontend/package.json
+            else
+              sed -i.bak "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" frontend/package.json && rm -f frontend/package.json.bak
+            fi
+          fi
+      
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new }}"
+          TAG="v$NEW_VERSION"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            {
+              echo "exists=true"
+            } >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG already exists, skipping tag creation"
+          else
+            {
+              echo "exists=false"
+            } >> "$GITHUB_OUTPUT"
+          fi
+      
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new }}"
+          TAG="v$NEW_VERSION"
+          COMMIT_MSG="chore: bump version to $NEW_VERSION [skip ci]"
+          
+          git add VERSION backend/package.json frontend/package.json
+          git commit -m "$COMMIT_MSG" || echo "No changes to commit"
+          git tag -a "$TAG" -m "Release version $NEW_VERSION"
+          git push origin master
+          git push origin "$TAG"
+      
+      - name: Merge master to dev
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git fetch origin dev:dev
+          git checkout -B dev origin/dev
+          git merge master -m "chore: sync version from master [skip ci]" || {
+            echo "Merge conflict detected, attempting merge with strategy-option theirs"
+            git merge master -X theirs -m "chore: sync version from master [skip ci]" || {
+              echo "Merge failed, skipping sync to dev"
+              exit 0
+            }
+          }
+          git push origin dev
+      
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new }}
+          release_name: Release v${{ steps.bump_version.outputs.new }}
+          body: |
+            ## Release v${{ steps.bump_version.outputs.new }}
+            
+            Automated release from merge of dev to master.
+            
+            **Changes:**
+            - See PR #${{ github.event.pull_request.number }} for details
+            
+            **Full Changelog:** https://github.com/${{ github.repository }}/compare/v${{ steps.current_version.outputs.current }}...v${{ steps.bump_version.outputs.new }}
+          draft: false
+          prerelease: false
+

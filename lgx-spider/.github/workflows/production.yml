@@ -1,0 +1,77 @@
+name: Production Deploy
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Get version
+        id: version
+        run: |
+          if [ -f "VERSION" ]; then
+            VERSION=$(cat VERSION | tr -d ' \n')
+          else
+            VERSION="0.0.0"
+          fi
+          {
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
+          echo "Deploying version: $VERSION"
+
+      - name: Deploy backend
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            git pull
+            export VERSION=${{ steps.version.outputs.version }}
+            make rolling-update-backend
+
+  deploy-frontend:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Get version
+        id: version
+        run: |
+          if [ -f "VERSION" ]; then
+            VERSION=$(cat VERSION | tr -d ' \n')
+          else
+            VERSION="0.0.0"
+          fi
+          {
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
+          echo "Deploying frontend version: $VERSION"
+
+      - name: Deploy frontend
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.HOST }}
+          port: ${{ secrets.PORT }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            git pull
+            export VERSION=${{ steps.version.outputs.version }}
+            make rolling-update-frontend
+

@@ -1,0 +1,31 @@
+---
+import SidebarWrapper from "@islands/components/sidebar/SidebarWrapper";
+import "@styles/global.css";
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Loganix Spider - SEO Outreach" } = Astro.props;
+
+const user = (Astro.locals as { user?: Record<string, unknown> }).user;
+---
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title set:html={title}></title>
+    <link rel="icon" type="image/png" href="https://www.google.com/s2/favicons?domain=loganix.com" />
+    <meta charset="utf-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=resizes-content" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  </head>
+  <body style="overflow: hidden; height: 100vh;">
+    <SidebarWrapper client:load user={user}>
+      <slot />
+    </SidebarWrapper>
+  </body>
+</html>

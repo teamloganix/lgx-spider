@@ -1,0 +1,62 @@
+{
+    "extends": "astro/tsconfigs/base",
+    "compilerOptions":
+    {
+        "jsx": "preserve",
+        "allowJs": true,
+        "strictNullChecks": true,
+        "types": ["vitest/globals"],
+        "baseUrl": "src",
+        "paths":
+        {
+            "@islands/*":
+            [
+                "islands/*"
+            ],
+            "@data/*":
+            [
+                "data/*"
+            ],
+            "@types/*":
+            [
+                "types/"
+            ],
+            "@models/*":
+            [
+                "models/*"
+            ],
+            "@utils/*":
+            [
+                "utils/*"
+            ],
+            "@components/*":
+            [
+                "components/*"
+            ],
+            "@modules/*":
+            [
+                "modules/*"
+            ],
+            "@layouts/*":
+            [
+                "layouts/*"
+            ],
+            "@assets/*":
+            [
+                "assets/*"
+            ],
+            "@pages/*":
+            [
+                "pages/*"
+            ],
+            "@styles/*":
+            [
+                "styles/*"
+            ],
+            "@lib/*":
+            [
+                "lib/*"
+            ]
+        }
+    }
+}

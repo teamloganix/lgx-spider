@@ -1,0 +1,221 @@
+# Loganix API Scrapping Project - Coding Standards
+
+## Code Style Preferences
+
+### Comments and Documentation
+- Do NOT add comments on individual lines or above each line of code, unless they really are hard to understand, for example:
+
+```
+// Get the first item of the list
+const firstItem = itens.slice(0, 1);
+```
+
+Do not write this kind of comments, it is basically translating what the line already does.
+
+- Add comprehensive comments at the TOP of methods/functions explaining:
+  - What the method does
+  - Parameters it accepts
+  - What it returns
+  - Any important business logic or assumptions
+- Use JSDoc format for method documentation when appropriate
+- Keep inline comments minimal and only for complex business logic
+
+### Code Organization
+- Prefer clear, self-documenting variable and method names over excessive commenting
+- Group related functionality together
+- Use consistent indentation (spaces/tabs as per project standard)
+- Keep methods focused and single-purpose
+
+### Database and SQL
+- Use meaningful table and column names
+- Prefer explicit field mappings over implicit ones
+- Always handle null/undefined values gracefully
+- Use parameterized queries to prevent SQL injection
+- Do not use suffic or preffix of tables at the code level, for example, when creating a method from table `stl_v2_sites_staging` instead of naming the class model as `StV2SitesStaging` does as `Sites`
+
+### Error Handling
+- Always include comprehensive error handling
+- Log errors with context (what operation failed, relevant data)
+- Return consistent error response formats
+- Use try-catch blocks appropriately
+
+#### Error Response Conventions
+All error responses must follow a consistent structure to ensure predictable client-side error handling:
+
+#### Import
+Always import at the top of the file, do not import at the middle of the functions
+
+**Standard Error Response Format:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Optional detailed description",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "path": "/api/v1/resource",
+    "requestId": "uuid-request-id"
+  }
+}
+```
+
+**Validation Error Response Format:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Input validation failed",
+    "details": "One or more fields contain invalid values",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "path": "/api/v1/resource",
+    "requestId": "uuid-request-id",
+    "fields": [
+      {
+        "field": "email",
+        "message": "Invalid email format",
+        "value": "invalid-email"
+      },
+      {
+        "field": "age",
+        "message": "Must be a number between 18 and 120",
+        "value": "invalid"
+      }
+    ]
+  }
+}
+```
+
+**Business Logic Error Response Format:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BUSINESS_RULE_VIOLATION",
+    "message": "Operation violates business rules",
+    "details": "User cannot delete their own account while being the only admin",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "path": "/api/v1/users/123",
+    "requestId": "uuid-request-id"
+  }
+}
+```
+
+**System Error Response Format:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred",
+    "details": "The system is temporarily unavailable. Please try again later.",
+    "timestamp": "2024-01-15T10:30:00.000Z",
+    "path": "/api/v1/resource",
+    "requestId": "uuid-request-id"
+  }
+}
+```
+
+**Error Code Categories:**
+- `VALIDATION_ERROR` - Input validation failures
+- `AUTHENTICATION_ERROR` - Authentication failures
+- `AUTHORIZATION_ERROR` - Permission/access denied
+- `RESOURCE_NOT_FOUND` - Requested resource doesn't exist
+- `RESOURCE_CONFLICT` - Resource already exists or conflicts
+- `BUSINESS_RULE_VIOLATION` - Business logic constraints violated
+- `RATE_LIMIT_EXCEEDED` - API rate limits exceeded
+- `EXTERNAL_SERVICE_ERROR` - Third-party service failures
+- `DATABASE_ERROR` - Database operation failures
+- `INTERNAL_SERVER_ERROR` - Unexpected system errors
+
+**Error Response Guidelines:**
+- Always include the `success: false` field for consistency with success responses
+- Error codes should be UPPER_SNAKE_CASE and descriptive
+- Messages should be user-friendly and actionable when possible
+- Details field should provide additional context without exposing sensitive information
+- Always include timestamp in ISO 8601 format
+- Include the request path for debugging purposes
+- Generate and include a unique requestId for tracing
+- For validation errors, always include the `fields` array with specific field-level errors
+- Never expose internal system details, stack traces, or sensitive data in error responses
+- Log full error details server-side with the requestId for debugging correlation
+
+### API Development
+- Follow RESTful conventions
+- Include proper HTTP status codes
+- Validate input parameters, the validation of query, body for individual fields are going to be always at `modules/name-of-model/validation` and will be used as middleware
+- Return consistent response formats (success/error structure)
+
+### Node.js Specific
+- Use async/await over callbacks
+- Handle promise rejections properly
+- Use meaningful variable names for better readability
+- Prefer const/let over var
+- Use template literals for string interpolation
+
+## Example Method Documentation Style:
+```javascript
+/**
+ * Process domain data and generate PostgreSQL INSERT statements
+ * Handles data validation, field mapping, and SQL escaping
+ * @param {Array} jsonData - Array of domain objects from JSON file
+ * @returns {Object} Processing result with success status and file path
+ */
+async getDataWithDetailsAndStore() {
+  // Implementation here
+}
+```
+
+## File Organization
+
+### Folder Structure (NestJS Style)
+Follow NestJS modular architecture pattern:
+
+```
+modules/                    # Each feature/module lives here
+  sites/
+    controllers/
+      sites.controller.ts
+    services/
+      sites.service.ts
+    models/
+      site.model.ts
+    validation/
+      site.validation.ts
+    tests/
+      sites.controller.spec.ts
+      sites.service.spec.ts
+  users/
+    controllers/
+      users.controller.ts
+    services/
+      users.service.ts
+    models/
+      user.model.ts
+    validation/
+      user.validation.ts
+    tests/
+      users.controller.spec.ts
+      users.service.spec.ts
+```
+
+### Naming Conventions
+- Follow **Airbnb JavaScript Style Guide** conventions (configured in ESLint)
+- Use kebab-case for file names: `user-profile.service.ts`
+- Use PascalCase for class names: `UserProfileService`
+- Use camelCase for variables and functions: `getUserProfile()`
+- Use UPPER_SNAKE_CASE for constants: `MAX_RETRY_ATTEMPTS`
+
+### Module Organization Principles
+- Each module should be self-contained with its own controllers, services, models, validation, and tests
+- Keep related functionality grouped together within the same module
+- Separate concerns properly: controllers handle HTTP requests, services contain business logic, models define data structures
+- Place shared utilities and common functionality in a separate `common/` or `shared/` module
+
+## When AI Assistance is Requested
+- Follow these coding standards automatically
+- Ask for clarification if requirements conflict with these standards
+- Provide complete, working code examples
+- Include error handling in all code suggestions
+- Focus on maintainable, readable code over clever solutions, this is a production project

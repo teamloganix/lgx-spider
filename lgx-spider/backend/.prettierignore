@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+
+# Database files
+*.sqlite
+*.db
+
+# Binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Documentation that should maintain original formatting
+CHANGELOG.md

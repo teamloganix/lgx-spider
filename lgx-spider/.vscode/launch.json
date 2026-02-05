@@ -1,0 +1,207 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest Tests (All)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest Tests (Current File)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "${file}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest Tests (Sites)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "src/modules/sites/tests"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest Tests (Watch Mode)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test:watch"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest - Sites Controller",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "src/modules/favorites/tests/favorites.test.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest - Sites Service",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "src/modules/sites/tests/sites.service.test.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest - Site Validator",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "src/modules/sites/tests/site.validator.test.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest - Constants",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vitest",
+        "--config",
+        "./vitest.config.ts",
+        "run",
+        "src/modules/sites/tests/constants.test.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "test"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend (Dev)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/server.ts"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "debugpy",
+      "request": "launch",
+      "name": "Debug Worker (Python)",
+      "program": "${workspaceFolder}/worker/worker.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/worker",
+      "python": "${workspaceFolder}/worker/venv/bin/python",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/worker"
+      },
+      "envFile": "${workspaceFolder}/worker/.env",
+      "justMyCode": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Frontend (Astro Dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/frontend",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Backend + Frontend",
+      "configurations": ["Debug Backend (Dev)", "Debug Frontend (Astro Dev)"],
+      "presentation": {
+        "hidden": false,
+        "group": "",
+        "order": 1
+      },
+      "stopAll": true
+    }
+  ]
+}

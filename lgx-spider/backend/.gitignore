@@ -1,0 +1,6 @@
+node_modules
+.env
+coverage/
+src/utils/generate_hash.ts
+scripts
+package-lock.json

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+.git/
+.github/
+*.md
+cypress/
+**/*.test.{ts,tsx}
+**/*.spec.{ts,tsx}
