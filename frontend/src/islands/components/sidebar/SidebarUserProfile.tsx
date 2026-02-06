@@ -4,15 +4,11 @@ import {
   DropdownMenuItem as DropdownMenuItemComponent,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@islands/components/ui/dropdown-menu";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@islands/components/ui/avatar";
-import { ChevronRight } from "lucide-react";
-import { Button } from "@islands/components/ui/button";
-import { userProfileMenuItems } from "../data/navigation-config";
+} from '@islands/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@islands/components/ui/avatar';
+import { ChevronRight } from 'lucide-react';
+import { Button } from '@islands/components/ui/button';
+import { userProfileMenuItems } from '../data/navigation-config';
 
 export default function SidebarUserProfile({
   isCollapsed,
@@ -25,9 +21,9 @@ export default function SidebarUserProfile({
 }) {
   const getUserInitials = (name: string) =>
     name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
+      .split(' ')
+      .map(n => n[0])
+      .join('')
       .toUpperCase()
       .slice(0, 2);
 
@@ -37,7 +33,7 @@ export default function SidebarUserProfile({
         <Button
           variant="ghost"
           className={`w-full justify-start text-slate-600
-            hover:bg-violet-50 hover:text-violet-700 h-auto ${isCollapsed ? "p-2" : "p-3"}`}
+            hover:bg-violet-50 hover:text-violet-700 h-auto ${isCollapsed ? 'p-2' : 'p-3'}`}
         >
           {isCollapsed ? (
             <Avatar className="h-8 w-8">
@@ -64,14 +60,14 @@ export default function SidebarUserProfile({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" side="right" align="end">
-        {userProfileMenuItems.map((item) => {
+        {userProfileMenuItems.map(item => {
           if (item.separator) {
             return <DropdownMenuSeparator key={item.id} />;
           }
 
           const Icon = item.icon;
 
-          if (item.onClick === "logout") {
+          if (item.onClick === 'logout') {
             return (
               <DropdownMenuItemComponent key={item.id} asChild>
                 <a href="/logout" className={item.className}>
@@ -88,15 +84,15 @@ export default function SidebarUserProfile({
                 href={
                   item.path
                     ? (() => {
-                        const baseUrl = import.meta.env.BASE_URL || "/";
-                        const normalizedPath = item.path!.startsWith("/")
+                        const baseUrl = import.meta.env.BASE_URL || '/';
+                        const normalizedPath = item.path!.startsWith('/')
                           ? item.path!
                           : `/${item.path!}`;
-                        return baseUrl === "/"
+                        return baseUrl === '/'
                           ? normalizedPath
-                          : `${baseUrl.replace(/\/$/, "")}${normalizedPath}`;
+                          : `${baseUrl.replace(/\/$/, '')}${normalizedPath}`;
                       })()
-                    : item.href || "#"
+                    : item.href || '#'
                 }
               >
                 <Icon className="mr-2 h-4 w-4" />
