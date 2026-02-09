@@ -29,22 +29,22 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "Deploying version: $VERSION"
 
-      - name: Code style checks and unit tests
-        uses: appleboy/ssh-action@v1.1.0
+      - name: Setup Node (backend)
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.HOST }}
-          port: ${{ secrets.PORT }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ${{ vars.DEPLOY_PATH }}
-            git checkout .
-            git pull
-            cd backend
-            npm i && npm ci
-            npm run lint
-            npm run format:check
-            npm test
+          node-version: '20'
+
+      - name: Install backend deps
+        run: cd backend && npm install
+
+      - name: Backend lint
+        run: cd backend && npm run lint
+
+      - name: Backend format check
+        run: cd backend && npm run format:check
+
+      - name: Backend unit tests
+        run: cd backend && npm test
 
       - name: Deploy backend
         uses: appleboy/ssh-action@v1.1.0
