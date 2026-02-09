@@ -6,7 +6,7 @@ import {
   Mail,
   User,
   LogOut,
-} from "lucide-react";
+} from 'lucide-react';
 
 export interface NavigationSubItem {
   id: string;
@@ -41,49 +41,49 @@ export interface DropdownMenuItem {
 
 export const navigationItems: NavigationItem[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
+    id: 'dashboard',
+    label: 'Dashboard',
     icon: LayoutDashboard,
-    path: "/dashboard",
+    path: '/dashboard',
   },
   {
-    id: "cart",
-    label: "Cart",
+    id: 'cart',
+    label: 'Cart',
     icon: ShoppingCart,
-    path: "/cart",
+    path: '/cart',
   },
   {
-    id: "metrics",
-    label: "Metrics",
+    id: 'metrics',
+    label: 'Metrics',
     icon: BarChart3,
-    path: "/metrics",
+    path: '/metrics',
   },
   {
-    id: "email",
-    label: "Email",
+    id: 'email',
+    label: 'Email',
     icon: Mail,
-    path: "/email",
+    path: '/email',
   },
 ];
 
 export const userProfileMenuItems: DropdownMenuItem[] = [
   {
-    id: "profile",
-    label: "Profile",
+    id: 'profile',
+    label: 'Profile',
     icon: User,
-    path: "/dashboard",
+    path: '/dashboard',
   },
   {
-    id: "separator-1",
-    label: "",
+    id: 'separator-1',
+    label: '',
     icon: User,
     separator: true,
   },
   {
-    id: "sign-out",
-    label: "Sign out",
+    id: 'sign-out',
+    label: 'Sign out',
     icon: LogOut,
-    onClick: "logout",
-    className: "text-red-600 cursor-pointer",
+    onClick: 'logout',
+    className: 'text-red-600 cursor-pointer',
   },
 ];

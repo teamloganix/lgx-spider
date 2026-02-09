@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@islands/components/ui/button";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@islands/components/ui/button';
 
 export default function SidebarButton({
   isCollapsed,

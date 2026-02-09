@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  reverse-proxy:
+    build: .
+    container_name: lgx-spider-reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-dev.loganix.com}
+      CMS_SERVER_NAME: ${CMS_SERVER_NAME:-}
+      ENABLE_SSL: ${ENABLE_SSL:-false}
+      FRONTEND_UPSTREAM: ${FRONTEND_UPSTREAM:-http://frontend:4321}
+      BACKEND_UPSTREAM: ${BACKEND_UPSTREAM:-http://backend:3000}
+      CMS_UPSTREAM: ${CMS_UPSTREAM:-http://directus:8055}
+      FRONTEND_UPSTREAM_SERVERS: ${FRONTEND_UPSTREAM_SERVERS:-}
+      BACKEND_UPSTREAM_SERVERS: ${BACKEND_UPSTREAM_SERVERS:-}
+      CMS_UPSTREAM_SERVERS: ${CMS_UPSTREAM_SERVERS:-}
+      FRONTEND_HEALTHCHECK_URL: ${FRONTEND_HEALTHCHECK_URL:-/health}
+      BACKEND_HEALTHCHECK_URL: ${BACKEND_HEALTHCHECK_URL:-/health}
+      CMS_HEALTHCHECK_URL: ${CMS_HEALTHCHECK_URL:-/server/health}
+      HEALTHCHECK_INTERVAL: ${HEALTHCHECK_INTERVAL:-10}
+      MY_UPSTREAM: ${MY_UPSTREAM:-https://my.loganix.com}
+      MY_HOST: ${MY_HOST:-my.loganix.com}
+      FRONTEND_PATH: ${FRONTEND_PATH:-/}
+      BACKEND_PATH: ${BACKEND_PATH:-/api}
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - ./certbot/www:/var/www/certbot:ro
+    logging:
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: lgx-spider-certbot
+    restart: unless-stopped
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/scripts:/scripts:ro
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-dev.loganix.com}
+      CMS_SERVER_NAME: ${CMS_SERVER_NAME:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-info@loganix.com}
+      CERTBOT_STAGING: ${CERTBOT_STAGING:-false}
+    entrypoint: /bin/sh -c "trap exit TERM; sh /scripts/init.sh; while :; do sleep 43200; sh /scripts/renew.sh; done"
+    logging:
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+

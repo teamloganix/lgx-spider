@@ -1,0 +1,248 @@
+services:
+  # For HTTPS setup ---------------------------------------------------
+  # nginx-proxy:
+  #   image: nginx:alpine
+  #   container_name: nginx-proxy
+  #   environment:
+  #     HTTPS_METHOD: ${HTTPS_METHOD:-redirect}
+  #   ports:
+  #     - ${NGINX_PROXY_HTTP_LISTEN:-80}:80
+  #     - ${NGINX_PROXY_HTTPS_LISTEN:-443}:443
+  #   volumes:
+  #     - .data/nginx/certs:/etc/nginx/certs
+  #     - .data/nginx/vhost.d:/etc/nginx/vhost.d
+  #     - .data/nginx/conf.d:/etc/nginx/conf.d:ro
+  #     - .data/nginx/html:/usr/share/nginx/html
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+  #   restart: always
+
+  # nginx-gen:
+  #   image: nginxproxy/docker-gen:latest
+  #   container_name: nginx-gen
+  #   volumes:
+  #     # https://raw.githubusercontent.com/nginx-proxy/nginx-proxy/master/nginx.tmpl
+  #     - .data/nginx/templates/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+  #     - .data/nginx/certs:/etc/nginx/certs
+  #     - .data/nginx/vhost.d:/etc/nginx/vhost.d
+  #     - .data/nginx/conf.d:/etc/nginx/conf.d:rw
+  #     - .data/nginx/html:/usr/share/nginx/html
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+  #   entrypoint: /bin/sh -c "docker-gen -notify-sighup nginx-proxy -watch /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf"
+  #   labels:
+  #     - com.github.nginx-proxy.docker-gen
+  #   depends_on:
+  #     - nginx-proxy
+
+  # letsencrypt:
+  #   image: nginxproxy/acme-companion
+  #   container_name: nginx-letsencrypt
+  #   environment:
+  #     NGINX_PROXY_CONTAINER: nginx-proxy
+  #     NGINX_DOCKER_GEN_CONTAINER: nginx-gen
+  #   volumes_from:
+  #     - nginx-proxy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - .data/nginx/certs:/etc/nginx/certs
+  #     - .data/nginx/vhost.d:/etc/nginx/vhost.d
+  #     #- .data/nginx/conf.d:/etc/nginx/conf.d
+  #     - .data/nginx/html:/usr/share/nginx/html
+  #   restart: always
+
+
+  # Services ---------------------------------------------------
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+     - ${REDIS_LISTEN:-127.0.0.1:6379}:6379
+     - 127.0.0.1:6379:6379
+    volumes:
+      - .config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    logging:
+     options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+  # stl-proxy:
+  #   image: nginx:alpine
+  #   environment:
+  #     VIRTUAL_HOST: ${VIRTUAL_HOST:-dev.loganix.com}
+  #     VIRTUAL_PATH: ${STL_PROXY_VIRTUAL_PATH:-/}
+  #     LETSENCRYPT_HOST: ${VIRTUAL_HOST:-dev.loganix.com}
+  #     LETSENCRYPT_EMAIL: info@loganix.com
+  #   command: >
+  #     sh -c "
+  #     cat > /etc/nginx/conf.d/default.conf << EOF
+  #     resolver 1.1.1.1 8.8.8.8 valid=300s;
+  #     resolver_timeout 5s;
+  #     server {
+  #         listen 80;                       # internal only
+  #         server_name $${VIRTUAL_HOST};
+  #         location / {
+  #             proxy_pass https://my.loganix.com;
+  #             proxy_set_header Host \"my.loganix.com\";
+  #             proxy_set_header X-Real-IP $$remote_addr;
+  #             proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+  #             proxy_set_header X-Forwarded-Proto $$scheme;
+  #             proxy_ssl_server_name on;
+  #             proxy_set_header Accept-Encoding \"\";
+  #             sub_filter 'https://my.loganix.com' 'https://$${VIRTUAL_HOST}';
+  #             sub_filter 'my.loganix.com' '$${VIRTUAL_HOST}';
+  #             sub_filter_once off;
+  #             proxy_redirect ~^https?://my\.loganix\.com(/.*)$$ https://$${VIRTUAL_HOST}$$1;
+  #         }
+  #     }
+  #     EOF
+  #     nginx -g 'daemon off;'
+  #     "
+  #   restart: always
+
+  # Software ---------------------------------------------------
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        HOST: 0.0.0.0
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /app
+    environment:
+      # Used only if nginx is on the same network. Disabled due to the reverse proxy being run somewhere else
+      # VIRTUAL_HOST: ${VIRTUAL_HOST:-dev.loganix.com}
+      # VIRTUAL_PORT: 3000
+      # VIRTUAL_PATH: ${BACKEND_VIRTUAL_PATH:-/api}
+
+      # APP_ENV from ./backend/.env
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      # DATABASE_URL from ./backend/.env
+      SPP_BASE_URL: ${SPP_BASE_URL:-https://my.loganix.com}
+      SPP_BEARER_TOKEN: ${SPP_BEARER_TOKEN:-x}
+      HMAC_SECRET_KEY: ${HMAC_SECRET_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      DEV_FAKE_USER_ID: ${DEV_FAKE_USER_ID:-}
+      GRACEFUL_TIMEOUT_MS: ${GRACEFUL_TIMEOUT_MS:-10000}
+      BACKEND_HEALTHCHECK_URL: ${BACKEND_HEALTHCHECK_URL:-/api/health}
+    env_file:
+      - ./backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --user-agent='Docker-Healthcheck/Backend' http://127.0.0.1:3000$${BACKEND_HEALTHCHECK_URL:-/api/health} || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    tty: true
+    expose:
+      - 3000
+    ports:
+      - ${BACKEND_WEBSERVER_LISTEN:-127.0.0.1:17001}:${SERVER_HTTP_PORT:-3000}/tcp
+    logging:
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        HOST: 0.0.0.0
+        MOUNT_PATH: ${FRONTEND_MOUNT_PATH:-/}
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /app
+    environment:
+      # Used only if nginx is on the same network. Disabled due to the reverse proxy being run somewhere else
+      # VIRTUAL_HOST: ${VIRTUAL_HOST:-dev.loganix.com}
+      # VIRTUAL_PORT: 4321
+      # VIRTUAL_PATH: ~^(${FRONTEND_MOUNT_PATH:-/}|/_astro)
+      # LETSENCRYPT_HOST: ${VIRTUAL_HOST:-dev.loganix.com}
+      # LETSENCRYPT_EMAIL: info@loganix.com
+
+      APP_ENV: ${APP_ENV:-production}
+      MOUNT_PATH: ${FRONTEND_MOUNT_PATH:-/}
+      ASTRO_ROOT_FOLDER: /app
+      STL_V2_BACKEND_URL: ${STL_V2_BACKEND_URL:-http://backend:3000}
+      PUBLIC_STL_V2_BACKEND_URL: ${PUBLIC_STL_V2_BACKEND_URL:-/api/v1}
+      JWT_REDIRECT_URL: ${JWT_REDIRECT_URL:-http://dev.loganix.com}
+      LOGOUT_REDIRECT_URL: ${LOGOUT_REDIRECT_URL:-https://my.loganix.com}
+      HMAC_SECRET_KEY: ${HMAC_SECRET_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      MOCK_USER_JSON: ${MOCK_USER_JSON:-}
+      GRACEFUL_TIMEOUT_MS: ${GRACEFUL_TIMEOUT_MS:-10000}
+      FRONTEND_HEALTHCHECK_URL: ${FRONTEND_HEALTHCHECK_URL:-/health}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+      PUBLIC_SENTRY_DSN: ${PUBLIC_SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      VERSION: ${VERSION:-0.0.0}
+      PUBLIC_GA_ENABLED: ${PUBLIC_GA_ENABLED:-false}
+      PUBLIC_GA_ID: ${PUBLIC_GA_ID:-}
+      PUBLIC_GTM_ID: ${PUBLIC_GTM_ID:-}
+      PUBLIC_HOTJAR_ID: ${PUBLIC_HOTJAR_ID:-}
+    env_file:
+      - ./frontend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --user-agent='Docker-Healthcheck/Frontend' http://127.0.0.1:4321$${FRONTEND_HEALTHCHECK_URL:-/health} || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    tty: true
+    expose:
+      - 4321
+    ports:
+      - ${FRONTEND_WEBSERVER_LISTEN:-127.0.0.1:17000}:${SERVER_HTTP_PORT:-4321}/tcp
+    logging:
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+  worker:
+    build:
+      context: ./worker
+      args:
+        HOST: 0.0.0.0
+    restart: unless-stopped
+    env_file:
+      - ./worker/.env
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_QUEUE: ${REDIS_QUEUE:-jobs.url-fetch}
+      REDIS_DLQ: ${REDIS_DLQ:-jobs.url-fetch.dlq}
+      REDIS_RESULT_PREFIX: ${REDIS_RESULT_PREFIX:-jobs.url-fetch.result.}
+      REDIS_RESULT_TTL_SECONDS: ${REDIS_RESULT_TTL_SECONDS:-86400}
+      ANALYZER_URL: ${ANALYZER_URL:-https://labs.loganix.com/ux-tracking/core/api/link_evaluation.php}
+      ANALYZER_TIMEOUT_SECONDS: ${ANALYZER_TIMEOUT_SECONDS:-120}
+      AHREFS_API_KEY: ${AHREFS_API_KEY:-}
+      AHREFS_BASE_URL: ${AHREFS_BASE_URL:-https://api.ahrefs.com/v3}
+      SERPAPI_KEY: ${SERPAPI_KEY:-}
+      SERPAPI_BASE_URL: ${SERPAPI_BASE_URL:-https://serpapi.com/search.json}
+      EXA_API_KEY: ${EXA_API_KEY:-}
+      EXA_BASE_URL: ${EXA_BASE_URL:-https://api.exa.ai}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY:-}
+      FIRECRAWL_BASE_URL: ${FIRECRAWL_BASE_URL:-https://api.firecrawl.dev}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_ORG_ID: ${OPENAI_ORG_ID:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-3.5-sonnet}
+      OPENROUTER_ENDPOINT: ${OPENROUTER_ENDPOINT:-https://openrouter.ai/api/v1/chat/completions}
+      # DATABASE_URL from ./worker/.env
+      PG_TABLE: ${PG_TABLE:-stl_results}
+      JOB_MAX_RETRIES: ${JOB_MAX_RETRIES:-3}
+      JOB_VISIBILITY_TIMEOUT: ${JOB_VISIBILITY_TIMEOUT:-0}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+    logging:
+      options:
+        max-size: ${DOCKER_LOG_MAX_SIZE:-10m}
+        max-file: ${DOCKER_LOG_MAX_FILE:-3}
+
+
+
+
+
