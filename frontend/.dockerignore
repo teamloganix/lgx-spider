@@ -9,3 +9,6 @@ coverage/
 cypress/
 **/*.test.{ts,tsx}
 **/*.spec.{ts,tsx}
+.vscode/
+.idea/
+.DS_Store

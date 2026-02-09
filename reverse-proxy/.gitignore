@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Certificates and ACME data
+certs/
+certbot/www/
+certbot/conf/
+*.pem
+*.crt
+*.key
+acme.json
+# Note: certbot/scripts/ is NOT ignored - these are required scripts
+
+# Generated nginx config/logs
+nginx.conf
+logs/
+*.log
+
