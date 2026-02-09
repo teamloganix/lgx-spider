@@ -77,14 +77,11 @@ jobs:
           if command -v apt-get >/dev/null 2>&1; then
             sudo apt-get update
             sudo apt-get install -y --no-install-recommends \
-              xvfb libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 \
-              libxss1 libasound2 fonts-liberation libu2f-udev libvulkan1 \
-              libnspr4 libnss3 libxss1 libgconf-2-4 libxrandr2 libasound2 \
-              libpangocairo-1.0-0 libatk1.0-0 libcairo-gobject2 libgtk-3-0 \
+              xvfb libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 \
+              libasound2t64 fonts-liberation libu2f-udev libvulkan1 libnspr4 \
+              libxrandr2 libpangocairo-1.0-0 libatk1.0-0 libcairo-gobject2 \
               libgdk-pixbuf2.0-0 libxcomposite1 libxcursor1 libxdamage1 \
-              libxext6 libxfixes3 libxi6 libxrender1 libxtst6 libxrandr2 \
-              libasound2 libpangocairo-1.0-0 libatk1.0-0 libcairo-gobject2 \
-              libgtk-3-0 libgdk-pixbuf2.0-0
+              libxext6 libxfixes3 libxi6 libxrender1 libxtst6
           else
             echo "apt-get not available on this runner; ensure dependencies are installed" && exit 1
           fi
