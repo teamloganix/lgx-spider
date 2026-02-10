@@ -3,12 +3,10 @@ import morgan from 'morgan';
 import chalk from 'chalk';
 import cookieParser from 'cookie-parser';
 import { handler as astroSsrHandler } from './dist/server/entry.mjs';
-import sppLogin from './express-middlewares/spp-login.js';
-import jwtCookie from './express-middlewares/jwt-cookie.js';
 import env from './express-middlewares/env.js';
 
 const app = express();
-const MOUNT_PATH = env.MOUNT_PATH;
+const { MOUNT_PATH } = env;
 
 morgan.token('status', (req, res) => {
   const code = res.statusCode || 0;
@@ -37,13 +35,8 @@ app.get('/health', (_req, res) => {
 });
 
 app.use(MOUNT_PATH, express.static('dist/client/', { maxAge: 1296000 }));
-app.use(MOUNT_PATH, sppLogin());
 app.use(MOUNT_PATH, cookieParser());
-app.use(MOUNT_PATH, jwtCookie());
-app.use(MOUNT_PATH, (req, res, next) => {
-  const locals = { user: req.user };
-  return astroSsrHandler(req, res, next, locals);
-});
+app.use(MOUNT_PATH, (req, res, next) => astroSsrHandler(req, res, next, {}));
 
 app.use((err, _req, res, _next) => {
   console.error('[express] error:', err);

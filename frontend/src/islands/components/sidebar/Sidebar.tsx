@@ -1,18 +1,13 @@
 /* eslint-disable max-len */
-import { TooltipProvider } from "@islands/components/ui/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetDescription,
-} from "@islands/components/ui/sheet";
-import SidebarLogo from "./SidebarLogo";
-import SidebarNavigation from "./SidebarNavigation";
-import SidebarUserProfile from "./SidebarUserProfile";
-import SidebarButton from "./SidebarButton";
+import { TooltipProvider } from '@islands/components/ui/tooltip';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@islands/components/ui/sheet';
+import SidebarLogo from './SidebarLogo';
+import SidebarNavigation from './SidebarNavigation';
+import SidebarUserProfile from './SidebarUserProfile';
+import SidebarButton from './SidebarButton';
 
 interface SidebarProps {
-  currentPage: "dashboard" | "cart" | "metrics" | "email";
+  currentPage: 'dashboard' | 'cart' | 'metrics' | 'email';
   cartItemCount?: number;
   userName?: string;
   userEmail?: string;
@@ -25,8 +20,8 @@ interface SidebarProps {
 export function Sidebar({
   currentPage,
   cartItemCount = 0,
-  userName = "",
-  userEmail = "",
+  userName = '',
+  userEmail = '',
   isCollapsed = false,
   onToggleCollapse = () => {},
   isMobileOpen = false,
@@ -46,13 +41,11 @@ export function Sidebar({
         </div>
       </div>
 
-      <div
-        className="p-6 border-t border-violet-100 pt-4 space-y-2 flex-shrink-0"
-      >
+      <div className="p-6 border-t border-violet-100 pt-4 space-y-2 flex-shrink-0">
         <SidebarUserProfile
           isCollapsed={isMobile ? false : isCollapsed}
-          userName={userName || ""}
-          userEmail={userEmail || ""}
+          userName={userName || ''}
+          userEmail={userEmail || ''}
         />
       </div>
     </div>
@@ -74,18 +67,15 @@ export function Sidebar({
       {/* Desktop Sidebar */}
       <div
         className={`hidden lg:fixed lg:flex left-0 bg-white border-r border-violet-100 flex-col z-40 transition-[width] duration-300 ease-in-out ${
-          isCollapsed ? "w-20" : "w-64"
+          isCollapsed ? 'w-20' : 'w-64'
         }`}
         style={{
-          top: "var(--banner-height, 0px)",
-          height: "calc(100vh - var(--banner-height, 0px))",
+          top: 'var(--banner-height, 0px)',
+          height: 'calc(100vh - var(--banner-height, 0px))',
         }}
       >
         {/* Collapse Button */}
-        <SidebarButton
-          isCollapsed={isCollapsed}
-          onToggleCollapse={onToggleCollapse}
-        />
+        <SidebarButton isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse} />
 
         <SidebarContent isMobile={false} />
       </div>

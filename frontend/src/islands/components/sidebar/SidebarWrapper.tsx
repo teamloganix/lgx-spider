@@ -1,21 +1,18 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Sidebar } from "./Sidebar";
-import { MobileHeader } from "../MobileHeader";
+import { useEffect, useState, type ReactNode } from 'react';
+import { Sidebar } from './Sidebar';
+import { MobileHeader } from '../MobileHeader';
 
 type SidebarWrapperProps = {
   user?: Record<string, unknown>;
   children: ReactNode;
 };
 
-export default function SidebarWrapper({
-  children,
-  user,
-}: SidebarWrapperProps) {
+export default function SidebarWrapper({ children, user }: SidebarWrapperProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<
-    "dashboard" | "cart" | "metrics" | "email"
-  >("dashboard");
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'cart' | 'metrics' | 'email'>(
+    'dashboard'
+  );
 
   const handleOpenMobileSidebar = () => {
     setIsMobileSidebarOpen(true);
@@ -31,22 +28,22 @@ export default function SidebarWrapper({
     };
 
     evaluateCollapse();
-    window.addEventListener("resize", evaluateCollapse);
-    return () => window.removeEventListener("resize", evaluateCollapse);
+    window.addEventListener('resize', evaluateCollapse);
+    return () => window.removeEventListener('resize', evaluateCollapse);
   }, []);
 
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.includes("cart")) {
-      setCurrentPage("cart");
-    } else if (path.includes("metrics")) {
-      setCurrentPage("metrics");
-    } else if (path.includes("email")) {
-      setCurrentPage("email");
-    } else if (path.includes("dashboard")) {
-      setCurrentPage("dashboard");
+    if (path.includes('cart')) {
+      setCurrentPage('cart');
+    } else if (path.includes('metrics')) {
+      setCurrentPage('metrics');
+    } else if (path.includes('email')) {
+      setCurrentPage('email');
+    } else if (path.includes('dashboard')) {
+      setCurrentPage('dashboard');
     } else {
-      setCurrentPage("dashboard");
+      setCurrentPage('dashboard');
     }
   }, []);
 
@@ -58,13 +55,15 @@ export default function SidebarWrapper({
         cartItemCount={0}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        userName={typeof user?.name_f === "string" ? (user.name_f as string) : ""}
-        userEmail={typeof user?.email === "string" ? (user.email as string) : ""}
+        userName={[user?.name_f, user?.name_l].filter(Boolean).join(' ') as string}
+        userEmail={typeof user?.email === 'string' ? (user.email as string) : ''}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={handleCloseMobileSidebar}
       />
       <div
-        className={`transition-all duration-300 grow h-dvh w-full overflow-y-auto ${isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"} lg:pt-0 pt-16`}
+        className={`transition-all duration-300 grow h-dvh w-full overflow-y-auto ${
+          isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
+        } lg:pt-0 pt-16`}
       >
         {children}
       </div>

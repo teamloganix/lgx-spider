@@ -8,6 +8,7 @@ import { router } from 'express-file-routing';
 import morgan from './morgan.ts';
 import cors from './cors.ts';
 import { incrementPendingRequests, decrementPendingRequests } from './health-state.ts';
+import cookieAuthMiddleware from '../middlewares/cookie-auth.middleware.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,6 +32,7 @@ app.use(cookieParser());
 app.use(cors);
 app.use(morgan);
 
+app.use('/api', cookieAuthMiddleware);
 app.use('/api', routes);
 
 app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
