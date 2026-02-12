@@ -36,6 +36,15 @@ export const api = {
     });
     return response.json();
   },
+  put: async <T = unknown>(endpoint: string, data?: unknown): Promise<T> => {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      credentials: 'include',
+      body: data !== undefined ? JSON.stringify(data) : undefined,
+    });
+    return response.json();
+  },
   delete: async (endpoint: string, data?: { ids: number[] }) => {
     const options: globalThis.RequestInit = {
       method: 'DELETE',

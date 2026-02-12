@@ -9,7 +9,7 @@ export default function SidebarNavigation({
   isCollapsed,
   cartItemCount = 0,
 }: {
-  currentPage: 'dashboard' | 'cart' | 'metrics' | 'email';
+  currentPage: 'campaigns' | 'cart' | 'metrics' | 'email';
   isCollapsed: boolean;
   cartItemCount?: number;
 }) {

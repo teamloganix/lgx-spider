@@ -11,8 +11,8 @@ type SidebarWrapperProps = {
 export default function SidebarWrapper({ children, user }: SidebarWrapperProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'cart' | 'metrics' | 'email'>(
-    'dashboard'
+  const [currentPage, setCurrentPage] = useState<'campaigns' | 'cart' | 'metrics' | 'email'>(
+    'campaigns'
   );
 
   const handleOpenMobileSidebar = () => {
@@ -35,16 +35,16 @@ export default function SidebarWrapper({ children, user }: SidebarWrapperProps) 
 
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.includes('cart')) {
+    if (path.includes('/campaigns')) {
+      setCurrentPage('campaigns');
+    } else if (path.includes('cart')) {
       setCurrentPage('cart');
     } else if (path.includes('metrics')) {
       setCurrentPage('metrics');
     } else if (path.includes('email')) {
       setCurrentPage('email');
-    } else if (path.includes('dashboard')) {
-      setCurrentPage('dashboard');
     } else {
-      setCurrentPage('dashboard');
+      setCurrentPage('campaigns');
     }
   }, []);
 

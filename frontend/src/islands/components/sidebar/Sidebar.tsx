@@ -7,7 +7,7 @@ import SidebarUserProfile from './SidebarUserProfile';
 import SidebarButton from './SidebarButton';
 
 interface SidebarProps {
-  currentPage: 'dashboard' | 'cart' | 'metrics' | 'email';
+  currentPage: 'campaigns' | 'cart' | 'metrics' | 'email';
   cartItemCount?: number;
   userName?: string;
   userEmail?: string;

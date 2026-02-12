@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach, vi } from 'vitest';
 import OutreachCart from '../models/outreach-cart.model.ts';
-import OutreachProspecting from '../models/outreach-prospecting.model.ts';
+import OutreachProspecting from '../../prospecting/models/outreach-prospecting.model.ts';
 import sequelize from '../../../utils/database.ts';
 import { getCarts, processCarts } from '../services/carts.service.ts';
 
@@ -24,7 +24,7 @@ vi.mock('../models/outreach-cart.model.ts', () => ({
   },
 }));
 
-vi.mock('../models/outreach-prospecting.model.ts', () => ({
+vi.mock('../../prospecting/models/outreach-prospecting.model.ts', () => ({
   default: {
     findAll: vi.fn(),
     bulkCreate: vi.fn(),

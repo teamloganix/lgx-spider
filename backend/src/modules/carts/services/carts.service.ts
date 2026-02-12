@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import sequelize from '../../../utils/database.ts';
 import OutreachCart from '../models/outreach-cart.model.ts';
-import OutreachProspecting from '../models/outreach-prospecting.model.ts';
+import OutreachProspecting from '../../prospecting/models/outreach-prospecting.model.ts';
 
 const DEFAULT_PAGE_SIZE = 25;
 const ALLOWED_ORDER_FIELDS = ['domain', 'similarity_score', 'added_at'] as const;
@@ -259,4 +259,22 @@ export const processCarts = async (sessionId: string): Promise<ProcessCartsResul
     await transaction.rollback();
     throw e;
   }
+};
+
+/**
+ * Get cart count for a specific campaign and session
+ * Only counts items where campaign_id matches and session_id matches
+ * @param campaignId - Campaign ID
+ * @param sessionId - Session ID (user ID)
+ * @returns Count of cart items
+ */
+export const getCartCount = async (campaignId: number, sessionId: string): Promise<number> => {
+  const count = await OutreachCart.count({
+    where: {
+      campaign_id: campaignId,
+      session_id: sessionId,
+    },
+  });
+
+  return count;
 };

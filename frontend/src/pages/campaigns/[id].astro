@@ -1,0 +1,20 @@
+---
+import SideBarLayout from '@layouts/SideBarLayout.astro';
+import { CampaignDetailPage } from '@islands/components/campaigns/CampaignDetailPage';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/campaigns');
+}
+
+const campaignId = parseInt(id, 10);
+
+if (isNaN(campaignId)) {
+  return Astro.redirect('/campaigns');
+}
+---
+
+<SideBarLayout title={`Campaign ${campaignId} - Loganix Spider`}>
+  <CampaignDetailPage client:load campaignId={campaignId} />
+</SideBarLayout>

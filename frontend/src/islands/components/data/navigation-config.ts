@@ -1,12 +1,4 @@
-import {
-  type LucideIcon,
-  LayoutDashboard,
-  ShoppingCart,
-  BarChart3,
-  Mail,
-  User,
-  LogOut,
-} from 'lucide-react';
+import { type LucideIcon, Target, ShoppingCart, BarChart3, Mail, User, LogOut } from 'lucide-react';
 
 export interface NavigationSubItem {
   id: string;
@@ -41,10 +33,10 @@ export interface DropdownMenuItem {
 
 export const navigationItems: NavigationItem[] = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-    path: '/dashboard',
+    id: 'campaigns',
+    label: 'Campaigns',
+    icon: Target,
+    path: '/campaigns',
   },
   {
     id: 'cart',
