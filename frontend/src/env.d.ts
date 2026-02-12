@@ -23,6 +23,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_GTM_ID?: string;
   readonly PUBLIC_HOTJAR_ID?: string;
   readonly PUBLIC_INTERCOM_APP_ID?: string;
+  readonly PUBLIC_LGX_BACKEND_URL?: string;
 }
 
 declare global {

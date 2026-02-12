@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from '../MobileHeader';
+import { Toaster } from '../ui/sonner';
 
 type SidebarWrapperProps = {
   user?: Record<string, unknown>;
@@ -55,17 +56,19 @@ export default function SidebarWrapper({ children, user }: SidebarWrapperProps) 
         cartItemCount={0}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        userName={typeof user?.name_f === 'string' ? (user.name_f as string) : ''}
+        userName={[user?.name_f, user?.name_l].filter(Boolean).join(' ') as string}
         userEmail={typeof user?.email === 'string' ? (user.email as string) : ''}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={handleCloseMobileSidebar}
       />
       <div
-        className={`transition-all duration-300 grow h-dvh w-full overflow-y-auto 
-          ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} lg:pt-0 pt-16`}
+        className={`transition-all duration-300 grow h-dvh w-full overflow-y-auto ${
+          isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
+        } lg:pt-0 pt-16`}
       >
         {children}
       </div>
+      <Toaster />
     </div>
   );
 }

@@ -64,8 +64,8 @@ export default function SidebarNavigation({
           <TooltipTrigger asChild>
             <button
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg 
-                transition-all relative cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all
+                relative cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-violet-50 to-indigo-50 text-violet-700 shadow-sm'
                     : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'
@@ -75,8 +75,8 @@ export default function SidebarNavigation({
                 <Icon className="h-5 w-5" />
                 {isCollapsed && hasSubItems && item.collapsible && (
                   <ChevronDown
-                    className={`h-3 w-3 absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 
-                      transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`h-3 w-3 absolute -bottom-1 -right-1 bg-white rounded-full
+                      p-0.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                   />
                 )}
               </div>
@@ -129,7 +129,7 @@ export default function SidebarNavigation({
                           subItem.onClick();
                         }
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm 
+                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm
                         transition-colors rounded-lg cursor-pointer ${
                           isSubActive
                             ? 'bg-gradient-to-r from-violet-50 to-indigo-50 text-violet-700 shadow-sm'
@@ -138,8 +138,8 @@ export default function SidebarNavigation({
                     >
                       {isCollapsed ? (
                         <span
-                          className="h-5 w-5 flex items-center justify-center shrink-0 text-xs font-medium 
-                        bg-violet-100 text-violet-700 rounded"
+                          className="h-5 w-5 flex items-center justify-center shrink-0
+                            text-xs font-medium bg-violet-100 text-violet-700 rounded"
                         >
                           {initials}
                         </span>
