@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from '../MobileHeader';
+import { Toaster } from '../ui/sonner';
 
 type SidebarWrapperProps = {
   user?: Record<string, unknown>;
@@ -67,6 +68,7 @@ export default function SidebarWrapper({ children, user }: SidebarWrapperProps) 
       >
         {children}
       </div>
+      <Toaster />
     </div>
   );
 }
