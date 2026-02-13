@@ -5,6 +5,7 @@ import {
   getPendingProspectingCount,
   getCampaignBlacklistCount,
 } from '../../prospecting/services/prospecting.service.ts';
+import { expandKeywordsForCampaign } from '../../../utils/open-router/campaigns-open-router.ts';
 
 export interface CampaignListItem {
   id: number;
@@ -114,6 +115,61 @@ export const getCampaignById = async (
     pending_prospecting_count: pendingProspectingCount,
     campaign_blacklist_count: campaignBlacklistCount,
   };
+};
+
+function normalizeOriginalKeywords(input: string): string {
+  const lines = input
+    .split(/\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+  const seen = new Set<string>();
+  const unique = lines.filter(line => {
+    const lower = line.toLowerCase();
+    if (seen.has(lower)) return false;
+    seen.add(lower);
+    return true;
+  });
+  return unique.join('\n');
+}
+
+export interface CreateCampaignInput {
+  name: string;
+  original_keywords: string;
+  is_active?: boolean;
+  blacklist_campaign_enabled?: boolean;
+  blacklist_global_enabled?: boolean;
+}
+
+/**
+ * Create a new campaign. Expands keywords via AI; on AI failure throws (no campaign created).
+ * When is_active is true, deactivates all other campaigns.
+ */
+export const createCampaign = async (input: CreateCampaignInput): Promise<OutreachCampaign> => {
+  const normalizedKeywords = normalizeOriginalKeywords(input.original_keywords);
+  const expandedKeywords = await expandKeywordsForCampaign(normalizedKeywords);
+
+  const isActive = input.is_active !== false;
+  const blacklistCampaignEnabled = input.blacklist_campaign_enabled !== false;
+  const blacklistGlobalEnabled = input.blacklist_global_enabled !== false;
+
+  if (isActive) {
+    await OutreachCampaign.update({ is_active: false }, { where: {} });
+  }
+
+  /* eslint-disable camelcase */
+  const campaign = await OutreachCampaign.create({
+    name: input.name.trim(),
+    original_keywords: normalizedKeywords,
+    expanded_keywords: expandedKeywords,
+    is_active: isActive,
+    status: 'active',
+    blacklist_campaign_enabled: blacklistCampaignEnabled,
+    blacklist_global_enabled: blacklistGlobalEnabled,
+    cron_add_count: 10,
+  });
+  /* eslint-enable camelcase */
+
+  return campaign;
 };
 
 /**

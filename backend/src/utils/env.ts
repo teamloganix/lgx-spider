@@ -11,6 +11,10 @@ interface Env {
   LIMITER_WINDOW: number;
   DEV_FAKE_USER_ID: string | null;
   DATABASE_URL: string;
+  OPENROUTER_API_KEY: string;
+  OPENROUTER_MODEL: string;
+  OPENROUTER_ENDPOINT: string;
+  OPENROUTER_TIMEOUT_MS: number;
 }
 
 const getv = (name: string, def: string): string => process.env[name] ?? def;
@@ -27,6 +31,10 @@ const env: Env = {
   LIMITER_WINDOW: parseInt(getv('LIMITER_WINDOW', '60'), 10),
   DEV_FAKE_USER_ID: getv('DEV_FAKE_USER_ID', '') || null,
   DATABASE_URL: getv('DATABASE_URL', 'mysql://user:password@localhost:3306/spider'),
+  OPENROUTER_API_KEY: getv('OPENROUTER_API_KEY', ''),
+  OPENROUTER_MODEL: getv('OPENROUTER_MODEL', 'anthropic/claude-3.5-sonnet'),
+  OPENROUTER_ENDPOINT: getv('OPENROUTER_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions'),
+  OPENROUTER_TIMEOUT_MS: parseInt(getv('OPENROUTER_TIMEOUT_MS', '90000'), 10),
 };
 
 export default env;

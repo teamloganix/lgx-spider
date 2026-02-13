@@ -57,7 +57,7 @@ export function Checkbox({
       )}
       {!isChecked && <div className="w-4 h-4 border border-slate-300 rounded shrink-0" />}
       {icon && <span className="shrink-0 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
-      <span className="text-sm font-medium text-slate-600">{label}</span>
+      <span className="whitespace-nowrap text-sm font-medium text-slate-600">{label}</span>
       {tooltip && (
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>

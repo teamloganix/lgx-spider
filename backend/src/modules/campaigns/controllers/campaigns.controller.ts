@@ -3,9 +3,75 @@ import { validationResult } from 'express-validator';
 import {
   listCampaigns,
   getCampaignById,
+  createCampaign,
   updateCampaign,
   deleteCampaign,
+  type CreateCampaignInput,
 } from '../services/campaigns.service.ts';
+
+/**
+ * Create a new campaign.
+ * POST /api/v1/campaigns
+ */
+export const create = async (req: Request, res: Response): Promise<Response> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Input validation failed',
+        fields: errors.array(),
+        timestamp: new Date().toISOString(),
+        path: req.path,
+      },
+    });
+  }
+
+  try {
+    const body = req.body as {
+      name: string;
+      original_keywords: string;
+      is_active?: boolean;
+      blacklist_campaign_enabled?: boolean;
+      blacklist_global_enabled?: boolean;
+    };
+
+    const input: CreateCampaignInput = {
+      name: body.name,
+      original_keywords: body.original_keywords,
+    };
+    if (body.is_active !== undefined) input.is_active = body.is_active;
+    if (body.blacklist_campaign_enabled !== undefined) {
+      input.blacklist_campaign_enabled = body.blacklist_campaign_enabled;
+    }
+    if (body.blacklist_global_enabled !== undefined) {
+      input.blacklist_global_enabled = body.blacklist_global_enabled;
+    }
+
+    const campaign = await createCampaign(input);
+
+    return res.status(201).json({ success: true, data: campaign });
+  } catch (error) {
+    console.error('Error in create:', error);
+    let message = error instanceof Error ? error.message : 'Failed to create campaign';
+    if (
+      message.includes('OPENROUTER_API_KEY') ||
+      message.includes('OPENROUTER_ENDPOINT')
+    ) {
+      message = 'Failed to create campaign';
+    }
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+      },
+    });
+  }
+};
 
 /**
  * List campaigns for the authenticated user.
@@ -16,7 +82,7 @@ export const list = async (_req: Request, res: Response): Promise<Response> => {
   try {
     const items = await listCampaigns();
     console.log('[campaigns.list] listCampaigns returned', items?.length ?? 0, 'items');
-    return res.json({ success: true, items });
+    return res.json({ success: true, data: { items } });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -81,7 +147,7 @@ export const getById = async (req: Request, res: Response): Promise<Response> =>
       });
     }
 
-    return res.json({ success: true, item: campaign });
+    return res.json({ success: true, data: campaign });
   } catch (error) {
     console.error('Error in getById:', error);
     return res.status(500).json({
@@ -159,7 +225,7 @@ export const update = async (req: Request, res: Response): Promise<Response> => 
       });
     }
 
-    return res.json({ success: true, item: campaign });
+    return res.json({ success: true, data: campaign });
   } catch (error) {
     console.error('Error in update:', error);
     return res.status(500).json({
@@ -211,7 +277,7 @@ export const remove = async (req: Request, res: Response): Promise<Response> => 
       });
     }
 
-    return res.json({ success: true });
+    return res.json({ success: true, data: {} });
   } catch (error) {
     console.error('Error in remove:', error);
     return res.status(500).json({

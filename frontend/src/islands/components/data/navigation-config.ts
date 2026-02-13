@@ -63,7 +63,7 @@ export const userProfileMenuItems: DropdownMenuItem[] = [
     id: 'profile',
     label: 'Profile',
     icon: User,
-    path: '/dashboard',
+    path: '/campaigns',
   },
   {
     id: 'separator-1',

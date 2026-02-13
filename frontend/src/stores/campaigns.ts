@@ -6,6 +6,8 @@ import type {
   CampaignListItem,
   CampaignDetailItem,
   UpdateCampaignPayload,
+  CreateCampaignPayload,
+  CreateCampaignResponse,
 } from '../types/campaigns';
 
 export const campaignsData = atom<CampaignListItem[]>([]);
@@ -22,8 +24,8 @@ export const fetchCampaigns = async (): Promise<void> => {
     campaignsError.set(null);
 
     const response = (await api.get('/campaigns')) as CampaignsResponse;
-    if (response?.success && response?.items) {
-      campaignsData.set(response.items);
+    if (response?.success && response?.data?.items) {
+      campaignsData.set(response.data.items);
     } else {
       campaignsData.set([]);
     }
@@ -48,10 +50,10 @@ export const fetchCampaignById = async (campaignId: number): Promise<void> => {
     });
 
     const response = (await api.get(`/campaigns/${campaignId}`)) as CampaignDetailResponse;
-    if (response?.success && response?.item) {
+    if (response?.success && response?.data) {
       campaignDetailData.set({
         ...campaignDetailData.get(),
-        [campaignId]: response.item,
+        [campaignId]: response.data,
       });
     } else {
       campaignDetailData.set({
@@ -85,7 +87,7 @@ export const updateCampaign = async (
 
     const response = (await api.put(`/campaigns/${campaignId}`, payload)) as {
       success: boolean;
-      item?: CampaignDetailItem;
+      data?: CampaignDetailItem;
     };
 
     if (response?.success) {
@@ -113,6 +115,34 @@ export const updateCampaign = async (
       [campaignId]: 'Failed to update campaign',
     });
     return false;
+  }
+};
+
+export const createCampaign = async (
+  payload: CreateCampaignPayload
+): Promise<CampaignListItem | null> => {
+  try {
+    campaignsError.set(null);
+
+    const response = (await api.post('/campaigns', payload)) as CreateCampaignResponse & {
+      error?: { message?: string };
+    };
+
+    if (response?.success && response?.data?.id != null) {
+      const currentList = campaignsData.get();
+      campaignsData.set([...currentList, response.data as CampaignListItem]);
+
+      return response.data as CampaignListItem;
+    }
+
+    const errMsg = response?.error?.message ?? 'Failed to create campaign';
+    campaignsError.set(errMsg);
+    return null;
+  } catch (err) {
+    console.error('Error creating campaign:', err);
+    const message = err instanceof Error ? err.message : 'Failed to create campaign';
+    campaignsError.set(message);
+    return null;
   }
 };
 

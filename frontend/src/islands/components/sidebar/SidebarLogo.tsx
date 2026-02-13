@@ -10,7 +10,7 @@ export default function SidebarLogo({
 }) {
   return (
     <div className={`flex items-center gap-2 justify-center ${className}`}>
-      <a href="/dashboard" className="cursor-pointer">
+      <a href="/campaigns" className="cursor-pointer">
         {!isCollapsed ? (
           <img src={LoganixLogo.src} alt="Loganix Logo" className="h-[42px] w-auto" />
         ) : (

@@ -6,10 +6,12 @@ import { toast } from 'sonner';
 import { useCampaigns } from '../../../hooks/useCampaigns';
 import { CampaignsList } from './components/CampaignsList';
 import { CampaignsListSkeleton } from './components/CampaignSkeleton';
+import { CreateCampaignModal } from './components/CreateCampaignModal';
 
 export function CampaignsPage() {
   const { items, loading, error, fetch, updateCampaign } = useCampaigns();
   const [searchQuery, setSearchQuery] = useState('');
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetch();
@@ -46,6 +48,17 @@ export function CampaignsPage() {
     const fullPath = baseUrl === '/' ? path : `${baseUrl.replace(/\/$/, '')}${path}`;
     window.location.href = fullPath;
   }, []);
+
+  const handleCreateSuccess = useCallback(
+    (createdId: number) => {
+      fetch();
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const path = `/campaigns/${createdId}`;
+      const fullPath = baseUrl === '/' ? path : `${baseUrl.replace(/\/$/, '')}${path}`;
+      window.location.href = fullPath;
+    },
+    [fetch]
+  );
 
   if (error && items.length === 0) {
     return (
@@ -87,9 +100,7 @@ export function CampaignsPage() {
               'bg-gradient-to-r from-violet-600 to-indigo-600 ' +
               'hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-violet-200 whitespace-nowrap'
             }
-            onClick={() => {
-              // TODO: Add function to add campaign
-            }}
+            onClick={() => setCreateModalOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add campaign
@@ -106,6 +117,12 @@ export function CampaignsPage() {
           onViewDetails={handleViewDetails}
         />
       )}
+
+      <CreateCampaignModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 }

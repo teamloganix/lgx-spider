@@ -22,12 +22,12 @@ export interface CampaignDetailItem extends CampaignListItem {
 
 export interface CampaignsResponse {
   success: boolean;
-  items: CampaignListItem[];
+  data: { items: CampaignListItem[] };
 }
 
 export interface CampaignDetailResponse {
   success: boolean;
-  item: CampaignDetailItem;
+  data: CampaignDetailItem;
 }
 
 export interface UpdateCampaignPayload {
@@ -36,4 +36,17 @@ export interface UpdateCampaignPayload {
   blacklist_global_enabled?: boolean;
   cron_add_count?: number;
   is_active?: boolean;
+}
+
+export interface CreateCampaignPayload {
+  name: string;
+  original_keywords: string;
+  is_active?: boolean;
+  blacklist_campaign_enabled?: boolean;
+  blacklist_global_enabled?: boolean;
+}
+
+export interface CreateCampaignResponse {
+  success: boolean;
+  data: CampaignListItem;
 }

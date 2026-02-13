@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { list, getById, update, remove } from '../controllers/campaigns.controller.ts';
+import { list, create, getById, update, remove } from '../controllers/campaigns.controller.ts';
 import * as campaignsService from '../services/campaigns.service.ts';
 
 vi.mock('express-validator', async () => {
@@ -15,6 +15,7 @@ vi.mock('express-validator', async () => {
 vi.mock('../services/campaigns.service.ts', () => ({
   listCampaigns: vi.fn(),
   getCampaignById: vi.fn(),
+  createCampaign: vi.fn(),
   updateCampaign: vi.fn(),
   deleteCampaign: vi.fn(),
 }));
@@ -22,6 +23,7 @@ vi.mock('../services/campaigns.service.ts', () => ({
 const mockValidationResult = vi.mocked(validationResult);
 const mockedListCampaigns = vi.mocked(campaignsService.listCampaigns);
 const mockedGetCampaignById = vi.mocked(campaignsService.getCampaignById);
+const mockedCreateCampaign = vi.mocked(campaignsService.createCampaign);
 const mockedUpdateCampaign = vi.mocked(campaignsService.updateCampaign);
 const mockedDeleteCampaign = vi.mocked(campaignsService.deleteCampaign);
 
@@ -48,6 +50,104 @@ describe('Campaigns Controller - Unit Tests', () => {
     vi.clearAllMocks();
   });
 
+  describe('create', () => {
+    test('should create campaign and return 201 with item', async () => {
+      mockReq.body = {
+        name: 'New Campaign',
+        original_keywords: 'fashion, e-commerce',
+        is_active: true,
+        blacklist_campaign_enabled: true,
+        blacklist_global_enabled: true,
+      };
+      mockReq.path = '/api/v1/campaigns';
+
+      const mockCreated = {
+        id: 1,
+        name: 'New Campaign',
+        original_keywords: 'fashion, e-commerce',
+        expanded_keywords: 'fashion, e-commerce, clothing, retail',
+        is_active: true,
+        status: 'active',
+        blacklist_campaign_enabled: true,
+        blacklist_global_enabled: true,
+        cron_add_count: 10,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      mockValidationResult.mockReturnValue({
+        isEmpty: () => true,
+        array: () => [],
+      } as any);
+      mockedCreateCampaign.mockResolvedValue(mockCreated as any);
+
+      await create(mockReq as Request, mockRes as Response);
+
+      expect(mockedCreateCampaign).toHaveBeenCalledWith({
+        name: 'New Campaign',
+        original_keywords: 'fashion, e-commerce',
+        is_active: true,
+        blacklist_campaign_enabled: true,
+        blacklist_global_enabled: true,
+      });
+      expect(mockStatus).toHaveBeenCalledWith(201);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: true,
+        data: mockCreated,
+      });
+    });
+
+    test('should return 422 when validation fails', async () => {
+      mockReq.body = { name: '' };
+      mockReq.path = '/api/v1/campaigns';
+      mockValidationResult.mockReturnValue({
+        isEmpty: () => false,
+        array: () => [{ msg: 'name is required', path: 'name' }],
+      } as any);
+
+      await create(mockReq as Request, mockRes as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(422);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Input validation failed',
+          fields: [{ msg: 'name is required', path: 'name' }],
+          timestamp: expect.any(String),
+          path: '/api/v1/campaigns',
+        },
+      });
+      expect(mockedCreateCampaign).not.toHaveBeenCalled();
+    });
+
+    test('should return 500 when createCampaign throws (e.g. AI failure)', async () => {
+      mockReq.body = {
+        name: 'New Campaign',
+        original_keywords: 'fashion',
+      };
+      mockReq.path = '/api/v1/campaigns';
+      mockValidationResult.mockReturnValue({
+        isEmpty: () => true,
+        array: () => [],
+      } as any);
+      mockedCreateCampaign.mockRejectedValue(new Error('AI returned empty keyword expansion'));
+
+      await create(mockReq as Request, mockRes as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'AI returned empty keyword expansion',
+          timestamp: expect.any(String),
+          path: '/api/v1/campaigns',
+        },
+      });
+    });
+  });
+
   describe('list', () => {
     test('should return campaigns list successfully', async () => {
       const mockCampaigns = [
@@ -72,7 +172,7 @@ describe('Campaigns Controller - Unit Tests', () => {
       expect(mockedListCampaigns).toHaveBeenCalled();
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
-        items: mockCampaigns,
+        data: { items: mockCampaigns },
       });
       expect(mockStatus).not.toHaveBeenCalled();
     });
@@ -128,7 +228,7 @@ describe('Campaigns Controller - Unit Tests', () => {
       expect(mockedGetCampaignById).toHaveBeenCalledWith(1, 'user-123');
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
-        item: mockCampaign,
+        data: mockCampaign,
       });
       expect(mockStatus).not.toHaveBeenCalled();
     });
@@ -236,7 +336,7 @@ describe('Campaigns Controller - Unit Tests', () => {
       });
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
-        item: mockUpdatedCampaign,
+        data: mockUpdatedCampaign,
       });
       expect(mockStatus).not.toHaveBeenCalled();
     });
@@ -298,6 +398,7 @@ describe('Campaigns Controller - Unit Tests', () => {
       expect(mockedDeleteCampaign).toHaveBeenCalledWith(1);
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
+        data: {},
       });
       expect(mockStatus).not.toHaveBeenCalled();
     });

@@ -10,6 +10,7 @@ import {
   fetchCampaignById,
   updateCampaign,
   deleteCampaign,
+  createCampaign,
 } from '../stores/campaigns';
 
 export const useCampaigns = () => {
@@ -34,5 +35,6 @@ export const useCampaigns = () => {
     fetchCampaignById,
     updateCampaign,
     deleteCampaign,
+    createCampaign,
   };
 };
