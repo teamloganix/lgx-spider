@@ -55,10 +55,7 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
   } catch (error) {
     console.error('Error in create:', error);
     let message = error instanceof Error ? error.message : 'Failed to create campaign';
-    if (
-      message.includes('OPENROUTER_API_KEY') ||
-      message.includes('OPENROUTER_ENDPOINT')
-    ) {
+    if (message.includes('OPENROUTER_API_KEY') || message.includes('OPENROUTER_ENDPOINT')) {
       message = 'Failed to create campaign';
     }
     return res.status(500).json({
@@ -77,7 +74,7 @@ export const create = async (req: Request, res: Response): Promise<Response> => 
  * List campaigns for the authenticated user.
  * GET /api/v1/campaigns
  */
-export const list = async (_req: Request, res: Response): Promise<Response> => {
+export const list = async (req: Request, res: Response): Promise<Response> => {
   console.log('[campaigns.list] GET /api/v1/campaigns hit');
   try {
     const items = await listCampaigns();
@@ -90,7 +87,7 @@ export const list = async (_req: Request, res: Response): Promise<Response> => {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch campaigns',
         timestamp: new Date().toISOString(),
-        path: _req.path,
+        path: req.path,
       },
     });
   }
