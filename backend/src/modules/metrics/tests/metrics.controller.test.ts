@@ -56,8 +56,33 @@ describe('Metrics Controller', () => {
       const data = {
         success: true as const,
         data: {
-          items: [{ id: 1, domain: 'x.com', campaign_name: 'C', processing_status: 'completed' }],
-          pagination: { currentPage: 1, totalPages: 1, totalRecords: 1, pageSize: 25, totalAvailable: 1 },
+          items: [
+            {
+              id: 1,
+              domain: 'x.com',
+              campaign_name: 'C',
+              domain_rating: null,
+              org_traffic: null,
+              org_keywords: null,
+              org_cost: null,
+              paid_traffic: null,
+              paid_keywords: null,
+              paid_cost: null,
+              top_country: null,
+              top_traffic: null,
+              processing_status: 'completed',
+              created_at: '2024-01-01T00:00:00.000Z',
+              updated_at: '2024-01-01T00:00:00.000Z',
+              error_message: null,
+            },
+          ],
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalRecords: 1,
+            pageSize: 25,
+            totalAvailable: 1,
+          },
         },
       };
       mockedGetMetricsList.mockResolvedValue(data);
@@ -114,7 +139,11 @@ describe('Metrics Controller', () => {
     test('should return filter options on success', async () => {
       const data = {
         success: true as const,
-        data: { campaigns: ['A'], top_countries: ['US'], statuses: ['pending', 'processing', 'completed', 'failed'] },
+        data: {
+          campaigns: ['A'],
+          top_countries: ['US'],
+          statuses: ['pending', 'processing', 'completed', 'failed'],
+        },
       };
       mockedGetMetricsFilterOptions.mockResolvedValue(data);
 
@@ -136,7 +165,11 @@ describe('Metrics Controller', () => {
 
   describe('toggleProcessingHandler', () => {
     test('should return toggle result', async () => {
-      const data = { success: true as const, paused: true, message: 'Processing paused successfully' };
+      const data = {
+        success: true as const,
+        paused: true,
+        message: 'Processing paused successfully',
+      };
       mockedToggleProcessing.mockResolvedValue(data);
 
       await toggleProcessingHandler(mockReq as Request, mockRes as Response);

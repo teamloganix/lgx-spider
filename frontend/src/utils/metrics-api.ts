@@ -4,7 +4,6 @@ import type {
   MetricsListResponse,
   MetricsFilterOptions,
   MetricsStats,
-  MetricsListItem,
 } from '../types/metrics';
 
 const baseUrl = env.PUBLIC_LGX_BACKEND_URL;

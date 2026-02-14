@@ -1,14 +1,16 @@
-import { Op, type WhereOptions } from 'sequelize';
+import { Op, QueryTypes, type WhereOptions } from 'sequelize';
 import sequelize from '../../../utils/database.ts';
 import OutreachProspecting from '../../prospecting/models/outreach-prospecting.model.ts';
 import OutreachArchive from '../../archives/models/outreach-archive.model.ts';
 import OutreachSettings from '../../settings/models/outreach-settings.model.ts';
+/* eslint-disable-next-line max-len */
 import OutreachGlobalBlacklist from '../../global-blacklist/models/outreach-global-blacklist.model.ts';
+/* eslint-disable-next-line max-len */
 import type { ProcessingStatus } from '../../prospecting/models/outreach-prospecting.model.ts';
 
 const DEFAULT_PAGE_SIZE = 25;
-const PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
 const MAX_LIST_RECORDS = 500;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, MAX_LIST_RECORDS] as const;
 const ORDER_FIELDS = [
   'id',
   'domain',
@@ -137,16 +139,24 @@ function parseRange(value: string | undefined): { min: number; max: number } | n
 }
 
 /** Extract top_country and top_traffic from org_traffic_top_by_country JSON [[ "code", traffic ], ...] */
-function extractTopCountryAndTraffic(json: unknown): { top_country: string | null; top_traffic: number | null } {
+function extractTopCountryAndTraffic(json: unknown): {
+  top_country: string | null;
+  top_traffic: number | null;
+} {
   if (!json) return { top_country: null, top_traffic: null };
   try {
-    const arr = Array.isArray(json) ? json : JSON.parse(String(json)) as unknown[];
+    const arr = Array.isArray(json) ? json : (JSON.parse(String(json)) as unknown[]);
     const first = arr?.[0];
     if (!Array.isArray(first) || first.length < 2) return { top_country: null, top_traffic: null };
     const code = first[0];
     const traffic = first[1];
     const country = typeof code === 'string' ? code.toUpperCase() : null;
-    const num = typeof traffic === 'number' ? traffic : typeof traffic === 'string' ? parseInt(String(traffic), 10) : null;
+    const num =
+      typeof traffic === 'number'
+        ? traffic
+        : typeof traffic === 'string'
+          ? parseInt(String(traffic), 10)
+          : null;
     return {
       top_country: country ?? null,
       top_traffic: num != null && !Number.isNaN(num) ? num : null,
@@ -159,15 +169,16 @@ function extractTopCountryAndTraffic(json: unknown): { top_country: string | nul
 function buildWhereClause(query: GetMetricsQuery): WhereOptions {
   const where: WhereOptions = {};
   const andClauses: unknown[] = [];
+  /* eslint-disable dot-notation -- WhereOptions has index signature; bracket access required */
 
   const search = typeof query.search === 'string' ? query.search.trim() : '';
   if (search) {
-    where.domain = { [Op.like]: `%${search}%` };
+    where['domain'] = { [Op.like]: `%${search}%` };
   }
 
   const campaigns = toArray(query.campaign ?? query.campaign).filter(Boolean);
   if (campaigns.length > 0) {
-    where.campaign_name = { [Op.in]: campaigns };
+    where['campaign_name'] = { [Op.in]: campaigns };
   }
 
   const statuses = toArray(query.status ?? query.processing_status)
@@ -176,37 +187,37 @@ function buildWhereClause(query: GetMetricsQuery): WhereOptions {
   if (statuses.length > 0) {
     const valid = statuses.filter(s => STATUSES.includes(s as ProcessingStatus));
     if (valid.length > 0) {
-      where.processing_status = { [Op.in]: valid };
+      where['processing_status'] = { [Op.in]: valid };
     }
   }
 
   const orgCostRange = parseRange(query.org_cost);
   if (orgCostRange) {
-    where.org_cost = { [Op.between]: [orgCostRange.min, orgCostRange.max] };
+    where['org_cost'] = { [Op.between]: [orgCostRange.min, orgCostRange.max] };
   }
   const orgKeywordsRange = parseRange(query.org_keywords);
   if (orgKeywordsRange) {
-    where.org_keywords = { [Op.between]: [orgKeywordsRange.min, orgKeywordsRange.max] };
+    where['org_keywords'] = { [Op.between]: [orgKeywordsRange.min, orgKeywordsRange.max] };
   }
   const orgTrafficRange = parseRange(query.org_traffic);
   if (orgTrafficRange) {
-    where.org_traffic = { [Op.between]: [orgTrafficRange.min, orgTrafficRange.max] };
+    where['org_traffic'] = { [Op.between]: [orgTrafficRange.min, orgTrafficRange.max] };
   }
   const drRange = parseRange(query.dr ?? query.domain_rating);
   if (drRange) {
-    where.domain_rating = { [Op.between]: [drRange.min, drRange.max] };
+    where['domain_rating'] = { [Op.between]: [drRange.min, drRange.max] };
   }
   const paidTrafficRange = parseRange(query.paid_traffic);
   if (paidTrafficRange) {
-    where.paid_traffic = { [Op.between]: [paidTrafficRange.min, paidTrafficRange.max] };
+    where['paid_traffic'] = { [Op.between]: [paidTrafficRange.min, paidTrafficRange.max] };
   }
   const paidKeywordsRange = parseRange(query.paid_keywords);
   if (paidKeywordsRange) {
-    where.paid_keywords = { [Op.between]: [paidKeywordsRange.min, paidKeywordsRange.max] };
+    where['paid_keywords'] = { [Op.between]: [paidKeywordsRange.min, paidKeywordsRange.max] };
   }
   const paidCostRange = parseRange(query.paid_cost);
   if (paidCostRange) {
-    where.paid_cost = { [Op.between]: [paidCostRange.min, paidCostRange.max] };
+    where['paid_cost'] = { [Op.between]: [paidCostRange.min, paidCostRange.max] };
   }
 
   if (query.error === 'true' || query.error === '1') {
@@ -218,35 +229,33 @@ function buildWhereClause(query: GetMetricsQuery): WhereOptions {
     });
   } else if (query.error === 'false' || query.error === '0') {
     andClauses.push({
-      [Op.or]: [
-        { error_message: null },
-        { error_message: '' },
-      ],
+      [Op.or]: [{ error_message: null }, { error_message: '' }],
     });
   }
 
-  const topCountries = toArray(query.top_country).map(c => String(c).toLowerCase()).filter(Boolean);
+  const topCountries = toArray(query.top_country)
+    .map(c => String(c).toLowerCase())
+    .filter(Boolean);
   if (topCountries.length > 0) {
     const safeCodes = topCountries.map(c => `'${String(c).replace(/'/g, "''")}'`);
-    andClauses.push(
-      sequelize.literal(
-        `(${safeCodes.map(c => `JSON_SEARCH(org_traffic_top_by_country, 'one', ${c}, NULL, '$[*][0]') IS NOT NULL`).join(' OR ')})`
-      )
-    );
+    const searchClauses = safeCodes
+      .map(c => `JSON_SEARCH(org_traffic_top_by_country, 'one', ${c}, NULL, '$[*][0]') IS NOT NULL`)
+      .join(' OR ');
+    andClauses.push(sequelize.literal(`(${searchClauses})`));
   }
 
   const topTrafficRange = parseRange(query.top_traffic);
   if (topTrafficRange) {
-    andClauses.push(
-      sequelize.literal(
-        `(CAST(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][1]')) AS UNSIGNED) BETWEEN ${topTrafficRange.min} AND ${topTrafficRange.max})`
-      )
-    );
+    const { min, max } = topTrafficRange;
+    const castExpr = "(CAST(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][1]')) "; // eslint-disable-line max-len
+    const expr = `${castExpr}AS UNSIGNED) BETWEEN ${min} AND ${max})`;
+    andClauses.push(sequelize.literal(expr));
   }
 
   if (andClauses.length > 0) {
     (where as { [Op.and]?: unknown[] })[Op.and] = andClauses;
   }
+  /* eslint-enable dot-notation */
   return where;
 }
 
@@ -273,24 +282,17 @@ function buildOrderClause(
   }
   const dir = direction as 'ASC' | 'DESC';
   if (field === 'top_country') {
+    const lit = "UPPER(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][0]')))";
     return [
-      [
-        sequelize.literal(
-          "UPPER(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][0]')))"
-        ),
-        dir,
-      ],
+      [sequelize.literal(lit), dir],
       ['id', 'ASC'],
     ];
   }
   if (field === 'top_traffic') {
+    const lit =
+      "CAST(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][1]')) AS UNSIGNED)";
     return [
-      [
-        sequelize.literal(
-          "CAST(JSON_UNQUOTE(JSON_EXTRACT(org_traffic_top_by_country, '$[0][1]')) AS UNSIGNED)"
-        ),
-        dir,
-      ],
+      [sequelize.literal(lit), dir],
       ['id', 'ASC'],
     ];
   }
@@ -300,28 +302,30 @@ function buildOrderClause(
   ];
 }
 
+/* eslint-disable dot-notation -- Record<string, unknown> has index signature; bracket access required */
 function mapRowToItem(row: Record<string, unknown>): MetricsListItem {
-  const json = row.org_traffic_top_by_country;
-  const { top_country, top_traffic } = extractTopCountryAndTraffic(json);
+  const json = row['org_traffic_top_by_country'];
+  const { top_country: topCountry, top_traffic: topTraffic } = extractTopCountryAndTraffic(json);
   return {
-    id: Number(row.id),
-    domain: String(row.domain),
-    campaign_name: String(row.campaign_name ?? ''),
-    domain_rating: row.domain_rating != null ? Number(row.domain_rating) : null,
-    org_traffic: row.org_traffic != null ? Number(row.org_traffic) : null,
-    org_keywords: row.org_keywords != null ? Number(row.org_keywords) : null,
-    org_cost: row.org_cost != null ? Number(row.org_cost) : null,
-    paid_traffic: row.paid_traffic != null ? Number(row.paid_traffic) : null,
-    paid_keywords: row.paid_keywords != null ? Number(row.paid_keywords) : null,
-    paid_cost: row.paid_cost != null ? Number(row.paid_cost) : null,
-    top_country,
-    top_traffic,
-    processing_status: String(row.processing_status ?? 'pending'),
-    created_at: row.created_at ? new Date(row.created_at as Date).toISOString() : '',
-    updated_at: row.updated_at ? new Date(row.updated_at as Date).toISOString() : '',
-    error_message: row.error_message != null ? String(row.error_message) : null,
+    id: Number(row['id']),
+    domain: String(row['domain']),
+    campaign_name: String(row['campaign_name'] ?? ''),
+    domain_rating: row['domain_rating'] != null ? Number(row['domain_rating']) : null,
+    org_traffic: row['org_traffic'] != null ? Number(row['org_traffic']) : null,
+    org_keywords: row['org_keywords'] != null ? Number(row['org_keywords']) : null,
+    org_cost: row['org_cost'] != null ? Number(row['org_cost']) : null,
+    paid_traffic: row['paid_traffic'] != null ? Number(row['paid_traffic']) : null,
+    paid_keywords: row['paid_keywords'] != null ? Number(row['paid_keywords']) : null,
+    paid_cost: row['paid_cost'] != null ? Number(row['paid_cost']) : null,
+    top_country: topCountry,
+    top_traffic: topTraffic,
+    processing_status: String(row['processing_status'] ?? 'pending'),
+    created_at: row['created_at'] ? new Date(row['created_at'] as Date).toISOString() : '',
+    updated_at: row['updated_at'] ? new Date(row['updated_at'] as Date).toISOString() : '',
+    error_message: row['error_message'] != null ? String(row['error_message']) : null,
   };
 }
+/* eslint-enable dot-notation */
 
 /**
  * Get paginated list of outreach prospecting with filters, ordering, capped at 500 records total.
@@ -363,10 +367,11 @@ export async function getMetricsList(query: GetMetricsQuery): Promise<GetMetrics
     ],
   });
 
-  const totalRecords = (allRows as Record<string, unknown>[]).length;
+  const rows = allRows as unknown as Record<string, unknown>[];
+  const totalRecords = rows.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 1;
   const start = (page - 1) * pageSize;
-  const pageRows = (allRows as Record<string, unknown>[]).slice(start, start + pageSize);
+  const pageRows = rows.slice(start, start + pageSize);
   const items = pageRows.map(mapRowToItem);
 
   return {
@@ -388,22 +393,25 @@ export async function getMetricsList(query: GetMetricsQuery): Promise<GetMetrics
  * Get aggregate stats by processing_status (no filters, full table).
  */
 export async function getMetricsStats(): Promise<GetMetricsStatsResult> {
-  const [rows] = await sequelize.query<Record<string, unknown>>(
+  const rows = await sequelize.query<Record<string, unknown>>(
     `SELECT
       COUNT(*) AS total,
       SUM(CASE WHEN processing_status = 'pending' THEN 1 ELSE 0 END) AS pending,
       SUM(CASE WHEN processing_status = 'processing' THEN 1 ELSE 0 END) AS processing,
       SUM(CASE WHEN processing_status = 'completed' THEN 1 ELSE 0 END) AS completed,
       SUM(CASE WHEN processing_status = 'failed' THEN 1 ELSE 0 END) AS failed
-    FROM outreach_prospecting`
+    FROM outreach_prospecting`,
+    { type: QueryTypes.SELECT }
   );
 
-  const row = rows?.[0];
-  const total = Number(row?.total ?? 0);
-  const pending = Number(row?.pending ?? 0);
-  const processing = Number(row?.processing ?? 0);
-  const completed = Number(row?.completed ?? 0);
-  const failed = Number(row?.failed ?? 0);
+  const row = rows[0];
+  /* eslint-disable dot-notation -- row is query result with dynamic keys */
+  const total = Number(row?.['total'] ?? 0);
+  const pending = Number(row?.['pending'] ?? 0);
+  const processing = Number(row?.['processing'] ?? 0);
+  const completed = Number(row?.['completed'] ?? 0);
+  const failed = Number(row?.['failed'] ?? 0);
+  /* eslint-enable dot-notation */
 
   return {
     success: true,
@@ -432,17 +440,17 @@ export async function getMetricsFilterOptions(): Promise<GetMetricsFilterOptions
   });
 
   const countrySet = new Set<string>();
-  for (const r of allRows as { org_traffic_top_by_country: unknown }[]) {
-    const { top_country } = extractTopCountryAndTraffic(r.org_traffic_top_by_country);
-    if (top_country) countrySet.add(top_country);
-  }
-  const top_countries = Array.from(countrySet).sort();
+  (allRows as { org_traffic_top_by_country: unknown }[]).forEach(r => {
+    const { top_country: topCountry } = extractTopCountryAndTraffic(r.org_traffic_top_by_country);
+    if (topCountry) countrySet.add(topCountry);
+  });
+  const topCountriesList = Array.from(countrySet).sort();
 
   return {
     success: true,
     data: {
       campaigns: campaignNames,
-      top_countries,
+      top_countries: topCountriesList,
       statuses: [...STATUSES],
     },
   };
@@ -472,9 +480,7 @@ export async function toggleProcessing(): Promise<ToggleProcessingResult> {
   return {
     success: true,
     paused: newPaused,
-    message: newPaused
-      ? 'Processing paused successfully'
-      : 'Processing resumed successfully',
+    message: newPaused ? 'Processing paused successfully' : 'Processing resumed successfully',
   };
 }
 
@@ -516,43 +522,47 @@ export async function blacklistProcessedDomains(
       transaction,
     });
 
-    for (const row of rows as Record<string, unknown>[]) {
-      await OutreachArchive.create(
-        {
-          original_prospecting_id: Number(row.id),
-          domain: String(row.domain),
-          campaign_name: String(row.campaign_name ?? ''),
-          domain_rating: row.domain_rating != null ? Number(row.domain_rating) : null,
-          org_traffic: row.org_traffic != null ? Number(row.org_traffic) : null,
-          org_keywords: row.org_keywords != null ? Number(row.org_keywords) : null,
-          org_cost: row.org_cost != null ? Number(row.org_cost) : null,
-          paid_cost: row.paid_cost != null ? Number(row.paid_cost) : null,
-          paid_keywords: row.paid_keywords != null ? Number(row.paid_keywords) : null,
-          paid_traffic: row.paid_traffic != null ? Number(row.paid_traffic) : null,
-          org_traffic_top_by_country:
-            row.org_traffic_top_by_country != null
-              ? typeof row.org_traffic_top_by_country === 'string'
-                ? row.org_traffic_top_by_country
-                : JSON.stringify(row.org_traffic_top_by_country)
-              : null,
-          processing_status: (row.processing_status as string) ?? 'completed',
-          error_message: row.error_message != null ? String(row.error_message) : null,
-          original_created_at: row.created_at ? new Date(row.created_at as Date) : null,
-          original_updated_at: row.updated_at ? new Date(row.updated_at as Date) : null,
-        },
-        { transaction }
-      );
-      archivedCount++;
-    }
+    /* eslint-disable dot-notation -- row is Record<string, unknown>; bracket access required */
+    const archivePayloads = (rows as unknown as Record<string, unknown>[]).map(row => {
+      const topByCountry = row['org_traffic_top_by_country'];
+      return {
+        original_prospecting_id: Number(row['id']),
+        domain: String(row['domain']),
+        campaign_name: String(row['campaign_name'] ?? ''),
+        domain_rating: row['domain_rating'] != null ? Number(row['domain_rating']) : null,
+        org_traffic: row['org_traffic'] != null ? Number(row['org_traffic']) : null,
+        org_keywords: row['org_keywords'] != null ? Number(row['org_keywords']) : null,
+        org_cost: row['org_cost'] != null ? Number(row['org_cost']) : null,
+        paid_cost: row['paid_cost'] != null ? Number(row['paid_cost']) : null,
+        paid_keywords: row['paid_keywords'] != null ? Number(row['paid_keywords']) : null,
+        paid_traffic: row['paid_traffic'] != null ? Number(row['paid_traffic']) : null,
+        org_traffic_top_by_country:
+          topByCountry != null
+            ? typeof topByCountry === 'string'
+              ? topByCountry
+              : JSON.stringify(topByCountry)
+            : null,
+        processing_status: ((row['processing_status'] as string) ??
+          'completed') as ProcessingStatus,
+        error_message: row['error_message'] != null ? String(row['error_message']) : null,
+        original_created_at: row['created_at'] ? new Date(row['created_at'] as Date) : null,
+        original_updated_at: row['updated_at'] ? new Date(row['updated_at'] as Date) : null,
+      };
+    });
+    /* eslint-enable dot-notation */
+    await Promise.all(archivePayloads.map(p => OutreachArchive.create(p, { transaction })));
+    archivedCount = archivePayloads.length;
 
-    for (const d of domains) {
-      const [_, created] = await OutreachGlobalBlacklist.findOrCreate({
-        where: { domain: d.domain },
-        defaults: { domain: d.domain },
-        transaction,
-      });
-      if (created) blacklistedCount++;
-    }
+    const blacklistResults = await Promise.all(
+      domains.map(d =>
+        OutreachGlobalBlacklist.findOrCreate({
+          where: { domain: d.domain },
+          defaults: { domain: d.domain },
+          transaction,
+        })
+      )
+    );
+    blacklistedCount = blacklistResults.filter(([, created]) => created).length;
 
     const removedCount = await OutreachProspecting.destroy({
       where: { id: { [Op.in]: ids } },
@@ -561,9 +571,12 @@ export async function blacklistProcessedDomains(
 
     await transaction.commit();
 
+    const msg =
+      `Successfully archived ${archivedCount} records, blacklisted ${blacklistedCount} ` +
+      `domains, and removed ${removedCount} records from prospecting`;
     return {
       success: true,
-      message: `Successfully archived ${archivedCount} records, blacklisted ${blacklistedCount} domains, and removed ${removedCount} records from prospecting`,
+      message: msg,
       archived: archivedCount,
       blacklisted: blacklistedCount,
       removed: removedCount,

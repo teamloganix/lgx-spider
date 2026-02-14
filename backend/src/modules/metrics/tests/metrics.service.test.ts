@@ -3,6 +3,7 @@ import sequelize from '../../../utils/database.ts';
 import OutreachProspecting from '../../prospecting/models/outreach-prospecting.model.ts';
 import OutreachSettings from '../../settings/models/outreach-settings.model.ts';
 import OutreachArchive from '../../archives/models/outreach-archive.model.ts';
+/* eslint-disable-next-line max-len */
 import OutreachGlobalBlacklist from '../../global-blacklist/models/outreach-global-blacklist.model.ts';
 import {
   getMetricsList,
@@ -98,9 +99,10 @@ describe('Metrics Service', () => {
 
       expect(result.success).toBe(true);
       expect(result.data.items).toHaveLength(1);
-      expect(result.data.items[0].domain).toBe('example.com');
-      expect(result.data.items[0].top_country).toBe('US');
-      expect(result.data.items[0].top_traffic).toBe(500);
+      const item = result.data.items[0]!;
+      expect(item.domain).toBe('example.com');
+      expect(item.top_country).toBe('US');
+      expect(item.top_traffic).toBe(500);
       expect(result.data.pagination.currentPage).toBe(1);
       expect(result.data.pagination.pageSize).toBe(25);
       expect(result.data.pagination.totalAvailable).toBe(10);
@@ -151,16 +153,13 @@ describe('Metrics Service', () => {
   describe('getMetricsStats', () => {
     test('should return aggregate stats', async () => {
       mockQuery.mockResolvedValue([
-        [
-          {
-            total: 100,
-            pending: 20,
-            processing: 5,
-            completed: 70,
-            failed: 5,
-          },
-        ],
-        undefined,
+        {
+          total: 100,
+          pending: 20,
+          processing: 5,
+          completed: 70,
+          failed: 5,
+        },
       ] as any);
 
       const result = await getMetricsStats();

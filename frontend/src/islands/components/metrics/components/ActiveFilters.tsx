@@ -22,11 +22,7 @@ function rangeText(
   return null;
 }
 
-export function ActiveFilters({
-  filters,
-  onRemoveFilter,
-  totalRecords,
-}: ActiveFiltersProps) {
+export function ActiveFilters({ filters, onRemoveFilter, totalRecords }: ActiveFiltersProps) {
   const badges: React.ReactNode[] = [];
 
   (filters.campaign ?? []).forEach(c => {

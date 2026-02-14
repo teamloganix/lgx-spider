@@ -47,12 +47,7 @@ export function BlacklistConfirmModal({
           </p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onConfirm}
-            disabled={loading}
-          >
+          <Button variant="outline" size="sm" onClick={onConfirm} disabled={loading}>
             {loading ? 'Blacklisting...' : 'Confirm'}
           </Button>
           <Button

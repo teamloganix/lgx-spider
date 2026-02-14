@@ -76,8 +76,7 @@ function parseRange(value: string): { min: number; max: number } | null {
 }
 
 export function getFiltersFromUrl(search: string = ''): MetricsFilters {
-  const searchString =
-    typeof window !== 'undefined' && !search ? window.location.search : search;
+  const searchString = typeof window !== 'undefined' && !search ? window.location.search : search;
   const params = new URLSearchParams(searchString);
   const filters: MetricsFilters = {};
   const campaigns = params.getAll('campaign').filter(Boolean);
@@ -140,8 +139,7 @@ export interface MetricsListParams {
 }
 
 export function getListParamsFromUrl(search: string = ''): MetricsListParams {
-  const searchString =
-    typeof window !== 'undefined' && !search ? window.location.search : search;
+  const searchString = typeof window !== 'undefined' && !search ? window.location.search : search;
   const params = new URLSearchParams(searchString);
   const page = Math.max(1, parseInt(params.get('page') ?? '1', 10) || 1);
   const pageSize = Math.max(1, parseInt(params.get('page_size') ?? '25', 10) || 25);

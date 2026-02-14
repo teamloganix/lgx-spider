@@ -40,7 +40,7 @@ export function ControlsBar({
   paused,
   onBlacklistProcessed,
   blacklistLoading,
-  completedCount,
+  completedCount: _completedCount,
 }: ControlsBarProps) {
   const defaultColumns = getDefaultMetricsColumns();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -109,21 +109,29 @@ export function ControlsBar({
                     onResetColumns();
                     setDropdownOpen(false);
                   }}
-                  className="h-6 text-xs text-slate-600 hover:text-slate-900 border border-dashed border-slate-300 rounded"
+                  className={
+                    'h-6 text-xs text-slate-600 hover:text-slate-900 ' +
+                    'border border-dashed border-slate-300 rounded'
+                  }
                 >
                   Reset
                 </Button>
               </div>
             )}
-            {columns.map(column => (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                checked={column.visible}
-                onCheckedChange={() => onToggleColumnVisibility(column.id)}
-              >
-                {column.label}
-              </DropdownMenuCheckboxItem>
-            ))}
+            {columns.map(column => {
+              const isFixed = column.id === 'id' || column.id === 'domain';
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.visible}
+                  onCheckedChange={() => !isFixed && onToggleColumnVisibility(column.id)}
+                  onSelect={e => e.preventDefault()}
+                  disabled={isFixed}
+                >
+                  {column.label}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
 

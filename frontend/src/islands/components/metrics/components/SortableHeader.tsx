@@ -11,26 +11,21 @@ interface SortableHeaderProps {
   onSort: (_columnId: string) => void;
 }
 
-export function SortableHeader({
-  column,
-  sortField,
-  sortDir,
-  onSort,
-}: SortableHeaderProps) {
+export function SortableHeader({ column, sortField, sortDir, onSort }: SortableHeaderProps) {
   const fieldForSort = column.id;
   const isSorted = sortField === fieldForSort;
 
+  const gradient = 'bg-gradient-to-r from-violet-50 to-indigo-50';
+  const shadowSticky = 'shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]';
   const stickyClass =
     column.frozen && column.id === 'id'
-      ? 'sticky left-0 z-10 min-w-[4rem] bg-gradient-to-r from-violet-50 to-indigo-50 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]'
+      ? `sticky left-0 z-10 min-w-[4rem] ${gradient} ${shadowSticky}`
       : column.frozen && column.id === 'domain'
-        ? 'sticky left-16 z-10 min-w-[180px] bg-gradient-to-r from-violet-50 to-indigo-50 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]'
-        : 'bg-gradient-to-r from-violet-50 to-indigo-50';
+        ? `sticky left-16 z-10 min-w-[180px] ${gradient} ${shadowSticky}`
+        : gradient;
 
   return (
-    <TableHead
-      className={`whitespace-nowrap text-violet-900 font-semibold ${stickyClass}`}
-    >
+    <TableHead className={`whitespace-nowrap text-violet-900 font-semibold ${stickyClass}`}>
       {column.sortable ? (
         <div className="flex items-center gap-2 group">
           <span className="font-semibold">{column.label}</span>

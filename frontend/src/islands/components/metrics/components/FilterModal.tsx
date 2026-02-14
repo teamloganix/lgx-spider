@@ -74,9 +74,7 @@ export function FilterModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent
-        className="max-w-2xl max-h-[92vh] flex flex-col p-0 overflow-hidden border-slate-200"
-      >
+      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col p-0 overflow-hidden border-slate-200">
         <DialogHeader className="bg-background px-4 sm:px-6 pt-4 pb-2 sm:pt-6 shrink-0 rounded-t-lg">
           <DialogTitle className="text-slate-900 text-left">Filter metrics</DialogTitle>
           <p className="text-sm text-slate-500 font-normal text-left">
@@ -128,6 +126,7 @@ export function FilterModal({
                 }
                 placeholder="Any"
                 showSearch={false}
+                singleSelect
               />
             </div>
           </div>

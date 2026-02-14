@@ -7,9 +7,7 @@ interface StatsRowProps {
 
 export function StatsRow({ stats }: StatsRowProps) {
   if (!stats) {
-    return (
-      <div className="text-sm text-slate-500">Loading stats...</div>
-    );
+    return <div className="text-sm text-slate-500">Loading stats...</div>;
   }
 
   return (

@@ -1,6 +1,6 @@
 import { body, query } from 'express-validator';
 
-const PAGE_SIZE_OPTIONS = ['25', '50', '100', '200'];
+const PAGE_SIZE_OPTIONS = ['25', '50', '100', '200', '500'];
 const ORDER_FIELDS = [
   'id',
   'domain',
@@ -68,31 +68,48 @@ export const listValidators = [
   query('order').optional().custom(validateOrder),
   query('search').optional().isString().trim().isLength({ max: 255 }),
   query('campaign').optional(),
-  query('org_cost').optional().custom(v => validateRange(v, 'org_cost')),
-  query('org_keywords').optional().custom(v => validateRange(v, 'org_keywords')),
-  query('org_traffic').optional().custom(v => validateRange(v, 'org_traffic')),
-  query('dr').optional().custom(v => validateRange(v, 'dr')),
-  query('domain_rating').optional().custom(v => validateRange(v, 'domain_rating')),
-  query('paid_traffic').optional().custom(v => validateRange(v, 'paid_traffic')),
-  query('paid_keywords').optional().custom(v => validateRange(v, 'paid_keywords')),
-  query('paid_cost').optional().custom(v => validateRange(v, 'paid_cost')),
+  query('org_cost')
+    .optional()
+    .custom(v => validateRange(v, 'org_cost')),
+  query('org_keywords')
+    .optional()
+    .custom(v => validateRange(v, 'org_keywords')),
+  query('org_traffic')
+    .optional()
+    .custom(v => validateRange(v, 'org_traffic')),
+  query('dr')
+    .optional()
+    .custom(v => validateRange(v, 'dr')),
+  query('domain_rating')
+    .optional()
+    .custom(v => validateRange(v, 'domain_rating')),
+  query('paid_traffic')
+    .optional()
+    .custom(v => validateRange(v, 'paid_traffic')),
+  query('paid_keywords')
+    .optional()
+    .custom(v => validateRange(v, 'paid_keywords')),
+  query('paid_cost')
+    .optional()
+    .custom(v => validateRange(v, 'paid_cost')),
   query('top_country').optional(),
-  query('top_traffic').optional().custom(v => validateRange(v, 'top_traffic')),
+  query('top_traffic')
+    .optional()
+    .custom(v => validateRange(v, 'top_traffic')),
   query('status').optional(),
   query('processing_status').optional(),
-  query('error').optional().isIn(['true', 'false', '1', '0']).withMessage('error must be true, false, 1, or 0'),
+  query('error')
+    .optional()
+    .isIn(['true', 'false', '1', '0'])
+    .withMessage('error must be true, false, 1, or 0'),
 ];
 
 /**
  * Validators for POST /api/v1/metrics/blacklist-processed
  */
 export const blacklistProcessedBody = [
-  body('domains')
-    .isArray({ min: 0 })
-    .withMessage('domains must be an array'),
-  body('domains.*.id')
-    .isInt({ min: 1 })
-    .withMessage('each domain must have a positive integer id'),
+  body('domains').isArray({ min: 0 }).withMessage('domains must be an array'),
+  body('domains.*.id').isInt({ min: 1 }).withMessage('each domain must have a positive integer id'),
   body('domains.*.domain')
     .isString()
     .trim()

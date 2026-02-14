@@ -126,13 +126,12 @@ function buildCsv(items: MetricsListItem[]): string {
   const escape = (v: string | number | null) => {
     if (v == null) return '';
     const s = String(v);
-    if (s.includes(',') || s.includes('"') || s.includes('\n'))
-      return `"${s.replace(/"/g, '""')}"`;
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
     return s;
   };
   const rows = items.map(row =>
     headers
-      .map(h => escape((row as Record<string, unknown>)[h] as string | number | null))
+      .map(h => escape((row as unknown as Record<string, unknown>)[h] as string | number | null))
       .join(',')
   );
   return [headers.join(','), ...rows].join('\n');
@@ -157,9 +156,7 @@ export function MetricsPage() {
   const [pageSize, setPageSize] = useState(() =>
     typeof window !== 'undefined' ? getListParamsFromUrl().page_size : 25
   );
-  const [columns, setColumns] = useState<MetricsColumnConfig[]>(() =>
-    getDefaultMetricsColumns()
-  );
+  const [columns, setColumns] = useState<MetricsColumnConfig[]>(() => getDefaultMetricsColumns());
   const [filterOptions, setFilterOptions] = useState<MetricsFilterOptions | null>(null);
   const [stats, setStats] = useState<MetricsStats | null>(null);
   const [paused, setPaused] = useState(false);
@@ -241,9 +238,7 @@ export function MetricsPage() {
   }, []);
 
   const handleToggleColumn = useCallback((columnId: string) => {
-    setColumns(cols =>
-      cols.map(c => (c.id === columnId ? { ...c, visible: !c.visible } : c))
-    );
+    setColumns(cols => cols.map(c => (c.id === columnId ? { ...c, visible: !c.visible } : c)));
   }, []);
 
   const handleResetColumns = useCallback(() => {
@@ -259,11 +254,7 @@ export function MetricsPage() {
   const handleRemoveFilter = useCallback((key: keyof MetricsFilters, value?: string) => {
     setFilters(prev => {
       const next = { ...prev };
-      if (
-        key === 'campaign' ||
-        key === 'status' ||
-        key === 'top_country'
-      ) {
+      if (key === 'campaign' || key === 'status' || key === 'top_country') {
         if (value != null) {
           const arr = (next[key] ?? []).filter(x => x !== value);
           if (arr.length) next[key] = arr;
@@ -299,12 +290,12 @@ export function MetricsPage() {
   const handleBlacklistClick = useCallback(async () => {
     const apiFilters = filtersToApiParams(filters);
     const params: FetchMetricsParams = {
+      ...apiFilters,
       page: 1,
       page_size: MAX_VISIBLE,
       order: 'processing_status,ASC',
       search: debouncedSearch || undefined,
       status: ['completed'],
-      ...apiFilters,
     };
     try {
       const res = await fetchMetricsListApi(params);

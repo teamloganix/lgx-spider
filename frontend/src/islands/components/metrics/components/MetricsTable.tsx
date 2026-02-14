@@ -38,9 +38,7 @@ function formatCurrency(n: number | null): string {
   }).format(n);
 }
 
-function statusVariant(
-  status: string
-): 'default' | 'secondary' | 'destructive' | 'outline' {
+function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
   const s = status.toLowerCase();
   if (s === 'completed') return 'default';
   if (s === 'failed') return 'destructive';
@@ -108,50 +106,28 @@ export function MetricsTable({
         return row.campaign_name || '—';
       case 'domain_rating':
         return (
-          <span className="text-right">
-            {row.domain_rating != null ? row.domain_rating : '—'}
-          </span>
+          <span className="text-right">{row.domain_rating != null ? row.domain_rating : '—'}</span>
         );
       case 'org_traffic':
-        return (
-          <span className="text-right tabular-nums">{formatNumber(row.org_traffic)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatNumber(row.org_traffic)}</span>;
       case 'org_keywords':
-        return (
-          <span className="text-right tabular-nums">{formatNumber(row.org_keywords)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatNumber(row.org_keywords)}</span>;
       case 'org_cost':
-        return (
-          <span className="text-right tabular-nums">{formatCurrency(row.org_cost)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatCurrency(row.org_cost)}</span>;
       case 'paid_traffic':
-        return (
-          <span className="text-right tabular-nums">{formatNumber(row.paid_traffic)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatNumber(row.paid_traffic)}</span>;
       case 'paid_keywords':
-        return (
-          <span className="text-right tabular-nums">{formatNumber(row.paid_keywords)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatNumber(row.paid_keywords)}</span>;
       case 'paid_cost':
-        return (
-          <span className="text-right tabular-nums">{formatCurrency(row.paid_cost)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatCurrency(row.paid_cost)}</span>;
       case 'top_country':
-        return (
-          <span className="text-right">
-            {row.top_country ?? '—'}
-          </span>
-        );
+        return <span className="text-right">{row.top_country ?? '—'}</span>;
       case 'top_traffic':
-        return (
-          <span className="text-right tabular-nums">{formatNumber(row.top_traffic)}</span>
-        );
+        return <span className="text-right tabular-nums">{formatNumber(row.top_traffic)}</span>;
       case 'processing_status':
         return (
           <span className={`text-right capitalize ${statusClass(row.processing_status)}`}>
-            <Badge variant={statusVariant(row.processing_status)}>
-              {row.processing_status}
-            </Badge>
+            <Badge variant={statusVariant(row.processing_status)}>{row.processing_status}</Badge>
           </span>
         );
       case 'created_at':
@@ -169,10 +145,9 @@ export function MetricsTable({
       case 'error_message':
         return (
           <span
-            className={
-              'text-right text-sm max-w-[200px] truncate block ' +
-              (row.error_message ? 'text-red-600' : 'text-slate-500')
-            }
+            className={`text-right text-sm max-w-[200px] truncate block ${
+              row.error_message ? 'text-red-600' : 'text-slate-500'
+            }`}
             title={row.error_message ?? undefined}
           >
             {row.error_message || '—'}
@@ -190,10 +165,20 @@ export function MetricsTable({
 
   return (
     <div className="space-y-4">
-      <div className="border border-violet-200 rounded-lg overflow-x-auto bg-white shadow-sm overflow-y-visible">
+      <div
+        className={
+          'border border-violet-200 rounded-lg overflow-x-auto bg-white ' +
+          'shadow-sm overflow-y-visible'
+        }
+      >
         <Table>
           <TableHeader>
-            <TableRow className="bg-gradient-to-r from-violet-50 to-indigo-50 border-b-2 border-violet-200 sticky top-0 z-10">
+            <TableRow
+              className={
+                'bg-gradient-to-r from-violet-50 to-indigo-50 ' +
+                'border-b-2 border-violet-200 sticky top-0 z-10'
+              }
+            >
               {visibleColumns.map(col => (
                 <SortableHeader
                   key={col.id}
@@ -220,9 +205,7 @@ export function MetricsTable({
                 <TableCell colSpan={visibleColumns.length} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
                     <BarChart3 className="h-10 w-10 text-slate-300" />
-                    <span className="text-base font-medium text-slate-900">
-                      No metrics found
-                    </span>
+                    <span className="text-base font-medium text-slate-900">No metrics found</span>
                     <span className="text-sm text-muted-foreground">
                       Try adjusting your search or filters to see more results.
                     </span>
@@ -235,10 +218,9 @@ export function MetricsTable({
                 return (
                   <TableRow
                     key={row.id}
-                    className={
-                      `group transition-colors border-b border-violet-100 hover:bg-violet-50/50 ` +
-                      (isEvenRow ? 'bg-white' : 'bg-slate-50/50')
-                    }
+                    className={`group transition-colors border-b border-violet-100 hover:bg-violet-50/50 ${
+                      isEvenRow ? 'bg-white' : 'bg-slate-50/50'
+                    }`}
                   >
                     {visibleColumns.map(col => {
                       const stickyClass =
@@ -247,16 +229,19 @@ export function MetricsTable({
                           : col.frozen && col.id === 'domain'
                             ? 'sticky left-16 z-10 min-w-[180px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]'
                             : '';
-                      const bgClass =
-                        col.frozen
-                          ? isEvenRow
-                            ? 'bg-white'
-                            : 'bg-slate-50'
-                          : isEvenRow
-                            ? 'bg-white'
-                            : 'bg-slate-50/50';
-                      const hoverClass = col.frozen ? 'group-hover:bg-violet-50' : 'group-hover:bg-violet-50/50';
-                      const cellClass = `${alignClass(col)} py-2 ${stickyClass} ${bgClass} ${hoverClass} transition-colors`;
+                      const bgClass = col.frozen
+                        ? isEvenRow
+                          ? 'bg-white'
+                          : 'bg-slate-50'
+                        : isEvenRow
+                          ? 'bg-white'
+                          : 'bg-slate-50/50';
+                      const hoverClass = col.frozen
+                        ? 'group-hover:bg-violet-50'
+                        : 'group-hover:bg-violet-50/50';
+                      const cellClass =
+                        `${alignClass(col)} py-2 ${stickyClass} ${bgClass} ` +
+                        `${hoverClass} transition-colors`;
                       return (
                         <TableCell key={col.id} className={cellClass}>
                           {cellContent(row, col)}
