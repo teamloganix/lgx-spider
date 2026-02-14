@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowLeft, Copy, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Copy, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@islands/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@islands/components/ui/card';
@@ -87,6 +87,7 @@ export function EmailGeneratePage({ emailId }: EmailGeneratePageProps) {
   const [lastSavedEmailContent, setLastSavedEmailContent] = useState('');
   const [lastSavedPrompt, setLastSavedPrompt] = useState('');
   const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
+  const [resetPromptConfirmOpen, setResetPromptConfirmOpen] = useState(false);
   const [pendingGenerate, setPendingGenerate] = useState(false);
   const skipNextSyncFromDataRef = useRef(false);
 
@@ -174,6 +175,12 @@ export function EmailGeneratePage({ emailId }: EmailGeneratePageProps) {
       toast.error('Failed to save prompt');
     }
   }, [data, prompt, saveGeneration]);
+
+  const handleResetPrompt = useCallback(() => {
+    setPrompt(DEFAULT_EMAIL_PROMPT);
+    setResetPromptConfirmOpen(false);
+    toast.success('Prompt reset to default');
+  }, []);
 
   const handleSaveEmail = useCallback(async () => {
     if (!data) return;
@@ -291,6 +298,27 @@ export function EmailGeneratePage({ emailId }: EmailGeneratePageProps) {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={resetPromptConfirmOpen} onOpenChange={setResetPromptConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset prompt?</DialogTitle>
+            <DialogDescription>
+              This will replace the current prompt with the default template. Your changes will be
+              lost and will not be saved; the default template will not be saved either. You can
+              recover the previously saved content by reloading the page. Continue?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetPromptConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleResetPrompt} className="bg-violet-600 hover:bg-violet-700">
+              Reset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
@@ -328,6 +356,16 @@ export function EmailGeneratePage({ emailId }: EmailGeneratePageProps) {
               </Button>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="default"
+                onClick={() => setResetPromptConfirmOpen(true)}
+                className="shrink-0"
+              >
+                <RotateCcw className="h-4 w-4 mr-0.5" />
+                Reset prompt
+              </Button>
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerateDisabled}
