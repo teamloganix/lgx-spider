@@ -5,8 +5,17 @@ import {
   emailError,
   emailPagination,
   fetchEmails,
+  emailByIdData,
+  emailByIdLoading,
+  emailByIdError,
+  emailGenerateLoading,
+  emailSavePromptLoading,
+  emailSaveEmailLoading,
+  fetchEmailById,
+  generateEmail,
+  saveGeneration,
 } from '../stores/emails';
-import type { FetchEmailsParams } from '../types/emails';
+import type { FetchEmailsParams, GenerateEmailRequest } from '../types/emails';
 
 export function useEmails() {
   const items = useStore(emailItems);
@@ -22,4 +31,24 @@ export function useEmails() {
   };
 }
 
-export type { FetchEmailsParams };
+export function useEmailById() {
+  const data = useStore(emailByIdData);
+  const loading = useStore(emailByIdLoading);
+  const error = useStore(emailByIdError);
+  const generateLoading = useStore(emailGenerateLoading);
+  const savePromptLoading = useStore(emailSavePromptLoading);
+  const saveEmailLoading = useStore(emailSaveEmailLoading);
+  return {
+    data,
+    loading,
+    error,
+    generateLoading,
+    savePromptLoading,
+    saveEmailLoading,
+    fetchEmailById,
+    generateEmail,
+    saveGeneration,
+  };
+}
+
+export type { FetchEmailsParams, GenerateEmailRequest };

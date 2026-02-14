@@ -3,8 +3,8 @@ import { useDrag, useDrop } from 'react-dnd';
 import { TableHead } from '@islands/components/ui/table';
 import { Button } from '@islands/components/ui/button';
 import { ArrowUpDown, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
-import type { EmailColumnConfig, EmailColumnId } from '../config';
-import { ORDER_FIELD_MAP } from '../config';
+import type { EmailColumnConfig, EmailColumnId } from '../utils/config';
+import { ORDER_FIELD_MAP } from '../utils/config';
 
 interface DragItem {
   columnId: EmailColumnId;

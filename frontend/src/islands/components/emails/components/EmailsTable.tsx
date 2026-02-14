@@ -8,7 +8,7 @@ import { Mail } from 'lucide-react';
 import { PaginationBar } from './PaginationBar';
 import { DraggableTableHeader } from './DraggableTableHeader';
 import type { EmailListItem } from '../../../../types/emails';
-import type { EmailColumnConfig, EmailColumnId } from '../config';
+import type { EmailColumnConfig, EmailColumnId } from '../utils/config';
 
 function formatDate(iso: string | null): string {
   if (!iso) return 'N/A';
@@ -192,7 +192,10 @@ export function EmailsTable({
                                 href={`https://${row.domain}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-slate-700 hover:text-violet-600 hover:underline font-medium"
+                                className={
+                                  'text-slate-700 hover:text-violet-600 ' +
+                                  'no-underline hover:no-underline font-medium'
+                                }
                               >
                                 {row.domain}
                               </a>
@@ -296,6 +299,8 @@ export function EmailsTable({
                           );
                         }
                         if (col.id === 'actions') {
+                          const base = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '') || '';
+                          const href = `${base}/emails/${row.id}`;
                           return (
                             <TableCell key={col.id} className={cellClass}>
                               <Button
@@ -304,7 +309,9 @@ export function EmailsTable({
                                 size="sm"
                                 className="border-violet-200 hover:bg-violet-50"
                                 aria-label="Generate email"
-                                onClick={() => {}}
+                                onClick={() => {
+                                  window.location.href = href;
+                                }}
                               >
                                 <Mail className="h-4 w-4" />
                               </Button>

@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@islands/components/ui/dropdown-menu';
 import { Settings2, Filter, Search, X } from 'lucide-react';
-import { getDefaultEmailColumns } from '../config';
-import type { EmailColumnConfig } from '../config';
+import { getDefaultEmailColumns } from '../utils/config';
+import type { EmailColumnConfig } from '../utils/config';
 
 interface ControlsBarProps {
   searchQuery: string;

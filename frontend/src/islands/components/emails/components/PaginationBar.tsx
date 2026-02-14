@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@islands/components/ui/dropdown-menu';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { BASE_PAGE_SIZE_OPTIONS } from '../config';
+import { BASE_PAGE_SIZE_OPTIONS } from '../utils/config';
 
 interface PaginationBarProps {
   currentPage: number;

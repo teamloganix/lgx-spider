@@ -1,5 +1,12 @@
 import env from '@utils/env';
-import type { FetchEmailsParams, EmailFilterOptions } from '../types/emails';
+import type {
+  FetchEmailsParams,
+  EmailFilterOptions,
+  EmailByIdResponse,
+  GenerateEmailRequest,
+  GenerateEmailResponse,
+  SaveGenerationRequest,
+} from '../types/emails';
 
 const baseUrl = env.PUBLIC_LGX_BACKEND_URL;
 
@@ -46,6 +53,40 @@ export async function fetchEmailFilterOptionsApi(): Promise<{
   const response = await fetch(`${baseUrl}/emails/filter-options`, {
     headers: getHeaders(),
     credentials: 'include',
+  });
+  return response.json();
+}
+
+export async function fetchEmailByIdApi(id: number): Promise<EmailByIdResponse> {
+  const response = await fetch(`${baseUrl}/emails/${id}`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  });
+  return response.json();
+}
+
+export async function generateEmailApi(
+  id: number,
+  body: GenerateEmailRequest
+): Promise<GenerateEmailResponse> {
+  const response = await fetch(`${baseUrl}/emails/${id}/generate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  return response.json();
+}
+
+export async function saveGenerationApi(
+  id: number,
+  body: SaveGenerationRequest
+): Promise<{ success: boolean }> {
+  const response = await fetch(`${baseUrl}/emails/${id}/generations`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    credentials: 'include',
+    body: JSON.stringify(body),
   });
   return response.json();
 }

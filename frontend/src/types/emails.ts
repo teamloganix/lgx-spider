@@ -60,3 +60,49 @@ export interface EmailFilterOptions {
   priorities: string[];
   guest_posts: string[];
 }
+
+// --- Email by ID / generation (page /emails/:id) ---
+
+/** Shape of analysis_json for Analysis Data Preview (optional fields) */
+export interface EmailAnalysisJson {
+  overall_link_value?: number;
+  link_building_recommendation?: { verdict?: string };
+  guest_post_analysis?: { accepts_guest_posts?: string };
+  contact_availability?: {
+    emails_found?: { actual_emails?: string[] };
+  };
+  domain_analysis?: {
+    content_type?: string;
+    primary_niche?: string;
+  };
+}
+
+export interface EmailByIdData {
+  id: number;
+  domain: string;
+  campaign_name: string;
+  analysis_json: EmailAnalysisJson;
+  analyzed_at: string | null;
+  generated_email: string | null;
+  prompt_used?: string | null;
+}
+
+export interface EmailByIdResponse {
+  success: boolean;
+  data?: EmailByIdData;
+}
+
+export interface GenerateEmailRequest {
+  prompt: string;
+  analysis: Record<string, unknown>;
+}
+
+export interface GenerateEmailResponse {
+  success: boolean;
+  email?: string;
+}
+
+export interface SaveGenerationRequest {
+  generated_email?: string;
+  prompt_used?: string;
+}

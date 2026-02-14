@@ -1,4 +1,4 @@
-import { query } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 const PAGE_SIZE_OPTIONS = ['25', '50', '100', '200'];
 const ORDER_FIELDS = [
@@ -79,4 +79,58 @@ export const listValidators = [
   query('domain_rating')
     .optional()
     .custom(v => validateRange(v, 'domain_rating')),
+];
+
+/**
+ * Validators for GET /api/v1/emails/:id
+ */
+export const idParam = [
+  param('id')
+    .notEmpty()
+    .withMessage('id is required')
+    .isInt({ min: 1 })
+    .withMessage('id must be a positive integer'),
+];
+
+/**
+ * Validators for POST /api/v1/emails/:id/generate
+ */
+export const generateBody = [
+  body('prompt')
+    .notEmpty()
+    .withMessage('prompt is required')
+    .isString()
+    .withMessage('prompt must be a string'),
+  body('analysis')
+    .notEmpty()
+    .withMessage('analysis is required')
+    .isObject()
+    .withMessage('analysis must be an object')
+    .custom((val: unknown) => {
+      if (val === null || typeof val !== 'object' || Array.isArray(val)) {
+        throw new Error('analysis must be an object');
+      }
+      return true;
+    }),
+];
+
+/**
+ * Validators for PUT /api/v1/emails/:id/generations
+ * At least one of generated_email or prompt_used must be present.
+ */
+export const saveGenerationBody = [
+  body('generated_email').optional().isString().withMessage('generated_email must be a string'),
+  body('prompt_used').optional().isString().withMessage('prompt_used must be a string'),
+  body()
+    .custom((value, { req }) => {
+      const hasEmail =
+        req.body?.generated_email !== undefined && String(req.body.generated_email).trim() !== '';
+      const hasPrompt =
+        req.body?.prompt_used !== undefined && String(req.body.prompt_used).trim() !== '';
+      if (!hasEmail && !hasPrompt) {
+        throw new Error('At least one of generated_email or prompt_used is required');
+      }
+      return true;
+    })
+    .withMessage('At least one of generated_email or prompt_used is required'),
 ];

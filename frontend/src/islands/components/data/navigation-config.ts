@@ -54,7 +54,7 @@ export const navigationItems: NavigationItem[] = [
     id: 'email',
     label: 'Email',
     icon: Mail,
-    path: '/email',
+    path: '/emails',
   },
 ];
 

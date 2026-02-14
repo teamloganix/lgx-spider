@@ -1,7 +1,9 @@
 import { Op, type WhereOptions } from 'sequelize';
 import sequelize from '../../../utils/database.ts';
 import OutreachEmail from '../models/outreach-email.model.ts';
+import OutreachEmailGeneration from '../models/outreach-email-generation.model.ts';
 import OutreachArchive from '../../archives/models/outreach-archive.model.ts';
+import { generateOutreachEmail } from '../../../utils/open-router/emails-open-router.ts';
 
 const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
@@ -103,15 +105,15 @@ function parseAnalysisJson(json: string | null): {
   if (!json) return {};
   try {
     const data = JSON.parse(json) as Record<string, unknown>;
-    const lb = data['link_building_recommendation'] as Record<string, unknown> | undefined;
-    const gp = data['guest_post_analysis'] as Record<string, unknown> | undefined;
-    const ca = data['contact_availability'] as Record<string, unknown> | undefined;
-    const emailsFound = ca?.['emails_found'] as Record<string, unknown> | undefined;
-    const actual = emailsFound?.['actual_emails'] as string[] | undefined;
-    const overall = data['overall_link_value'];
-    const verdictVal = lb?.['verdict'];
-    const priorityVal = lb?.['outreach_priority'];
-    const guestVal = gp?.['accepts_guest_posts'];
+    const lb = data.link_building_recommendation as Record<string, unknown> | undefined;
+    const gp = data.guest_post_analysis as Record<string, unknown> | undefined;
+    const ca = data.contact_availability as Record<string, unknown> | undefined;
+    const emailsFound = ca?.emails_found as Record<string, unknown> | undefined;
+    const actual = emailsFound?.actual_emails as string[] | undefined;
+    const overall = data.overall_link_value;
+    const verdictVal = lb?.verdict;
+    const priorityVal = lb?.outreach_priority;
+    const guestVal = gp?.accepts_guest_posts;
     return {
       link_value: typeof overall === 'number' ? overall : undefined,
       verdict: typeof verdictVal === 'string' ? verdictVal : undefined,
@@ -145,12 +147,12 @@ function buildWhereClause(query: GetEmailsQuery): WhereOptions {
 
   const search = typeof query.search === 'string' ? query.search.trim() : '';
   if (search) {
-    where['domain'] = { [Op.like]: `%${search}%` };
+    where.domain = { [Op.like]: `%${search}%` };
   }
 
   const campaigns = toArray(query.campaign).filter(Boolean);
   if (campaigns.length > 0) {
-    where['campaign_name'] = { [Op.in]: campaigns };
+    where.campaign_name = { [Op.in]: campaigns };
   }
 
   const linkRange = parseRange(query.link_value);
@@ -183,7 +185,7 @@ function buildWhereClause(query: GetEmailsQuery): WhereOptions {
     const allowed = ['Low', 'Medium', 'High'] as const;
     const valid = priorities.filter(p => allowed.includes(p as (typeof allowed)[number]));
     if (valid.length > 0) {
-      where['outreach_priority'] = { [Op.in]: valid };
+      where.outreach_priority = { [Op.in]: valid };
     }
   }
 
@@ -291,9 +293,9 @@ function mapRowToItem(
     priority: typeof priority === 'string' ? priority : 'Unknown',
     guest_posts: guestPosts,
     contact_emails: contactEmails,
-    domain_rating: (archive ? archive['domain_rating'] : null) as number | null,
-    org_traffic: (archive ? archive['org_traffic'] : null) as number | null,
-    org_keywords: (archive ? archive['org_keywords'] : null) as number | null,
+    domain_rating: (archive ? archive.domain_rating : null) as number | null,
+    org_traffic: (archive ? archive.org_traffic : null) as number | null,
+    org_keywords: (archive ? archive.org_keywords : null) as number | null,
     primary_email: row.primary_email ?? null,
   };
 }
@@ -319,13 +321,13 @@ export async function getEmailsList(query: GetEmailsQuery): Promise<GetEmailsLis
 
   const includeWhere: Record<string, unknown> = {};
   if (trafficRange) {
-    includeWhere['org_traffic'] = { [Op.between]: [trafficRange.min, trafficRange.max] };
+    includeWhere.org_traffic = { [Op.between]: [trafficRange.min, trafficRange.max] };
   }
   if (keywordsRange) {
-    includeWhere['org_keywords'] = { [Op.between]: [keywordsRange.min, keywordsRange.max] };
+    includeWhere.org_keywords = { [Op.between]: [keywordsRange.min, keywordsRange.max] };
   }
   if (domainRatingRange) {
-    includeWhere['domain_rating'] = {
+    includeWhere.domain_rating = {
       [Op.between]: [domainRatingRange.min, domainRatingRange.max],
     };
   }
@@ -401,4 +403,141 @@ export async function getFilterOptions(): Promise<GetFilterOptionsResult> {
       guest_posts: ['yes', 'no', 'unknown'],
     },
   };
+}
+
+// --- Email by ID, generate, save (outreach email generation flow) ---
+
+export interface EmailByIdResult {
+  id: number;
+  domain: string;
+  campaign_name: string;
+  analysis_json: Record<string, unknown>;
+  analyzed_at: string | null;
+  /** Last generated email text (SUBJECT + BODY) if any */
+  generated_email: string | null;
+  /** Prompt used for the latest generation, if any */
+  prompt_used: string | null;
+}
+
+/**
+ * Get a single outreach email by id with analysis_json and latest generation (if any).
+ * Returns null if email not found.
+ */
+export async function getEmailById(id: number): Promise<EmailByIdResult | null> {
+  const row = await OutreachEmail.findByPk(id, {
+    attributes: ['id', 'domain', 'campaign_name', 'analysis_json', 'analyzed_at'],
+  });
+  if (!row) return null;
+
+  let analysisJson: Record<string, unknown> = {};
+  if (row.analysis_json) {
+    try {
+      analysisJson = JSON.parse(row.analysis_json) as Record<string, unknown>;
+    } catch {
+      // leave empty
+    }
+  }
+
+  const latestGen = await OutreachEmailGeneration.findOne({
+    where: { email_id: id },
+    order: [['id', 'DESC']],
+    attributes: ['generated_email', 'prompt_used'],
+  });
+
+  return {
+    id: row.id,
+    domain: row.domain,
+    campaign_name: row.campaign_name,
+    analysis_json: analysisJson,
+    analyzed_at: row.analyzed_at ? new Date(row.analyzed_at).toISOString() : null,
+    generated_email: latestGen?.generated_email ?? null,
+    prompt_used: latestGen?.prompt_used ?? null,
+  };
+}
+
+/**
+ * Build full prompt sent to AI: user prompt + newline + JSON stringified analysis.
+ */
+export function buildFullPrompt(prompt: string, analysis: Record<string, unknown>): string {
+  return `${prompt.trim()}\n\n${JSON.stringify(analysis, null, 2)}`;
+}
+
+/**
+ * Generate outreach email via AI and persist to outreach_email_generations.
+ * One row per email_id (domain): updates existing generation if any, otherwise creates.
+ * Returns the full generated email string (SUBJECT + BODY).
+ */
+export async function generateEmail(
+  emailId: number,
+  domain: string,
+  prompt: string,
+  analysis: Record<string, unknown>
+): Promise<string> {
+  const fullPrompt = buildFullPrompt(prompt, analysis);
+  const generatedEmail = await generateOutreachEmail(fullPrompt);
+
+  const existing = await OutreachEmailGeneration.findOne({
+    where: { email_id: emailId },
+    order: [['id', 'DESC']],
+  });
+
+  // Store only the user prompt (editable part); full prompt is built on the fly for AI.
+  if (existing) {
+    await existing.update({
+      prompt_used: prompt,
+      generated_email: generatedEmail,
+    });
+  } else {
+    await OutreachEmailGeneration.create({
+      email_id: emailId,
+      domain,
+      prompt_used: prompt,
+      generated_email: generatedEmail,
+    });
+  }
+
+  return generatedEmail;
+}
+
+/**
+ * Update or create the generation for this email_id.
+ * If a row exists: updates only the fields present in updates.
+ * If no row exists and prompt_used is provided: creates a row with prompt_used and empty generated_email.
+ * Returns true if a row was updated or created, false otherwise.
+ */
+export async function saveGeneration(
+  emailId: number,
+  updates: { generated_email?: string; prompt_used?: string }
+): Promise<boolean> {
+  const latest = await OutreachEmailGeneration.findOne({
+    where: { email_id: emailId },
+    order: [['id', 'DESC']],
+  });
+
+  if (latest) {
+    const toUpdate: { generated_email?: string; prompt_used?: string } = {};
+    if (updates.generated_email !== undefined) toUpdate.generated_email = updates.generated_email;
+    if (updates.prompt_used !== undefined) toUpdate.prompt_used = updates.prompt_used;
+    if (Object.keys(toUpdate).length === 0) return true;
+    await latest.update(toUpdate);
+    return true;
+  }
+
+  // No row: create one when saving prompt only (so user can save prompt before first generate).
+  if (updates.prompt_used === undefined || String(updates.prompt_used).trim() === '') {
+    return false;
+  }
+  const emailRow = await OutreachEmail.findByPk(emailId, {
+    attributes: ['id', 'domain'],
+  });
+  if (!emailRow) return false;
+  const { domain } = emailRow as { domain: string };
+
+  await OutreachEmailGeneration.create({
+    email_id: emailId,
+    domain,
+    prompt_used: updates.prompt_used,
+    generated_email: '',
+  });
+  return true;
 }

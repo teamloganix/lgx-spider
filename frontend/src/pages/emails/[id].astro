@@ -1,0 +1,22 @@
+---
+import SideBarLayout from '@layouts/SideBarLayout.astro';
+import { EmailGeneratePage } from '@islands/components/emails/EmailGeneratePage';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/emails');
+}
+
+const emailId = parseInt(id, 10);
+
+if (Number.isNaN(emailId)) {
+  return Astro.redirect('/emails');
+}
+---
+
+<SideBarLayout title="Generate Outreach Email - Loganix Spider">
+  <div class="flex-1 bg-gradient-to-br from-slate-50 via-violet-50/30 to-indigo-50 h-full overflow-auto">
+    <EmailGeneratePage client:load emailId={emailId} />
+  </div>
+</SideBarLayout>
