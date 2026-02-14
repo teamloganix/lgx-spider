@@ -19,6 +19,8 @@ export interface OutreachProspectingAttributes {
   org_traffic_top_by_country?: unknown;
   processing_status?: ProcessingStatus;
   error_message?: string | null;
+  archived?: number;
+  used?: number;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -38,6 +40,8 @@ export interface OutreachProspectingCreationAttributes extends Optional<
   | 'org_traffic_top_by_country'
   | 'processing_status'
   | 'error_message'
+  | 'archived'
+  | 'used'
   | 'created_at'
   | 'updated_at'
 > {}
@@ -73,6 +77,10 @@ class OutreachProspecting
   public processing_status!: ProcessingStatus;
 
   public error_message!: string | null;
+
+  public archived!: number;
+
+  public used!: number;
 
   public readonly created_at!: Date;
 
@@ -164,6 +172,18 @@ OutreachProspecting.init(
       allowNull: true,
       field: 'error_message',
     },
+    archived: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'archived',
+    },
+    used: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'used',
+    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -187,6 +207,8 @@ OutreachProspecting.init(
       { name: 'idx_prospecting_campaign', fields: ['campaign_name'] },
       { name: 'idx_prospecting_status', fields: ['processing_status'] },
       { name: 'idx_prospecting_campaign_id', fields: ['campaign_id'] },
+      { name: 'idx_archived', fields: ['archived'] },
+      { name: 'idx_used', fields: ['used'] },
       { unique: true, fields: ['domain', 'campaign_id'] },
     ],
   }

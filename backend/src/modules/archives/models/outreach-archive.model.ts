@@ -3,7 +3,7 @@ import sequelize from '../../../utils/database.ts';
 
 import OutreachEmail from '../../emails/models/outreach-email.model.ts';
 
-export type ProcessingStatus = 'pending' | 'processing';
+export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface OutreachArchiveAttributes {
   id?: number;
@@ -130,7 +130,7 @@ OutreachArchive.init(
       field: 'org_traffic_top_by_country',
     },
     processing_status: {
-      type: DataTypes.ENUM('pending', 'processing'),
+      type: DataTypes.ENUM('pending', 'processing', 'completed', 'failed'),
       allowNull: true,
       defaultValue: 'pending',
       field: 'processing_status',
